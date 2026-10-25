@@ -1,0 +1,14 @@
+# Large media files
+*.mov
+*.mp4
+*.avi
+*.mkv
+
+# Zip archives
+*.zip
+
+# Raw presentation source files (binary)
+For Presenters/
+
+# macOS
+.DS_Store
