@@ -63,3 +63,33 @@ Need tomorrow's visit to complete before committing to a solution direction. Pre
 ---
 
 <!-- Add new progress reports below this line -->
+
+---
+
+## Oct 27 — Report 3: Second Site Visit — First Place AZ (AM)
+
+**Report type:** Partner visit debrief / solution pivot
+
+---
+
+**Problem description & target user**
+Autistic adults and individuals with I/DD living at First Place AZ (and the 70,000+ per year who age out of school-based supports nationally). Today's guided tour of the full building with a senior First Place staff member confirmed and sharpened the core problem: residents have world-class physical infrastructure and a 1,600-activity-per-year calendar, but no independent way to see or track their own skill development. They rely entirely on staff to know how far they've come — which undermines the confidence and self-direction that First Place is explicitly trying to build.
+
+**Solution description**
+Shifting from a broad social connection scaffold to a resident-owned skill milestone tracker with AI-driven next-step suggestions. The tool would allow residents to log skill progress (cooking, money management, relationships, employment readiness) independently — without needing staff to confirm it — share milestones with family, and receive AI suggestions for what to work on next. Social and employment readiness milestones would be surfaced organically: "you've attended 3 cooking classes this month — you're ready to host a cooking night with a neighbor." This was a direct, unprompted product ask from the First Place staff member leading our tour.
+
+**AI use**
+AI layer suggests next-skill recommendations based on current milestone progress. Recognizes patterns across skill domains to connect social milestones (attending activities) to employment readiness signals and independence goals. Enables a personalized learning path without requiring clinical staff to generate it manually.
+
+**Data use**
+Primary: verbatim transcript from today's guided tour (full building walkthrough with Q&A). Key data points: 15,000 iGuard stove activations since 2018, $4,400/month resident cost, 3-month engagement timeline, wearable failure due to sensory issues (Amazon AWS trial), MyClip as the activity scheduling platform, three-department staff structure (Support / Community Life / Employment).
+
+**Breakthroughs**
+1. Direct product ask confirmed: staff explicitly said they want a resident-facing skill tracker with AI-suggested next steps — unprompted, specific, and validated technology as the right format.
+2. Social connection is the confirmed keystone: "Once they have friends, they're more likely to want a job, more likely to clean their house." The social gap and the skill gap are the same gap.
+3. Architecture insight: the entire building is a physical prototype for neurodiversity-first design (wayfinding by floor color, recessed doorways, wide hallways, key drop zones, LED lighting, sound dampening) — this gives us design principles to apply to the app UX.
+4. Wearable failure lesson: Amazon AWS physiological wearable was tried and rejected universally due to sensory discomfort. Any hardware component must account for sensory profile.
+
+**Blockers**
+Need to confirm whether MyClip (the activity app mentioned in the tour) is the same product as LifeLoop (identified in pre-visit research) or a separate system. This affects whether we can build on top of activity data. Will clarify via follow-up with First Place or partner office hours.
+
