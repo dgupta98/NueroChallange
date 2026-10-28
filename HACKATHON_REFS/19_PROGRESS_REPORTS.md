@@ -93,3 +93,44 @@ Primary: verbatim transcript from today's guided tour (full building walkthrough
 **Blockers**
 Need to confirm whether MyClip (the activity app mentioned in the tour) is the same product as LifeLoop (identified in pre-visit research) or a separate system. This affects whether we can build on top of activity data. Will clarify via follow-up with First Place or partner office hours.
 
+---
+
+## Oct 27 — Report 4: Deep Research Day — Post-Visit (PM)
+
+**Report type:** PM research update / solution architecture
+
+---
+
+**Problem description & target user**
+Autistic adults and individuals with I/DD at First Place AZ (and the 70,000+ who age out of school supports nationally each year). Today's AM site visit with Josh confirmed and sharpened two distinct but connected problems: (1) residents have no way to independently track their own skill development — they rely entirely on staff to know how far they've come; (2) when residents graduate to employment, they lose jobs at high rates because the support infrastructure disappears. Josh told us 50% of Be Open Be Ready graduates are employed — meaning 50% are not retaining employment. Both problems have no existing product solution. Both are solvable with the same AI layer.
+
+**Solution description**
+A two-layer resident-owned tool:
+
+**Layer 1 (10-day MVP) — Skill Milestone Tracker:** Resident logs their own progress across First Place's 360 Health & Wellness domains (Physical, Social, Financial, Vocational, Mental). AI suggests next milestones based on current progress. Social milestones connect to employment readiness. Shareable with family and support team. Builds the confidence and self-direction First Place is explicitly designed to develop.
+
+**Layer 2 (pitch vision) — Post-Hire Retention Coach:** Same app, activated when a resident is employed. Features: Situation Decoder (translate ambiguous manager feedback), Accommodation Navigator (conversational JAN functionality with ADA draft language), Review Prep Coach (30/90-day review preparation), Post-Shift Processing (log shift, identify patterns, flag stress triggers before they become crisis). The skill tracker data feeds the retention coach — a resident who has been working on "handling unexpected change" gets surfaced the schedule-change accommodation request template automatically.
+
+**AI use**
+LLM (Claude/GPT-4) with employer-specific system context (AMC Theaters, Phoenix Zoo, Aramark protocols). Few-shot library of workplace scenario interpretations. AI milestone suggestions from current skill state. Pattern recognition across post-shift logs. All designed for low-EF entry: voice or one-sentence text in → grounded, actionable output. Pre-built scenario buttons for when typing is too much.
+
+**Data use**
+Six research files compiled today (23–26 + visit debrief + job skills landscape):
+- PMC9838300: employer-initiated termination study — social difficulties (16% of firings), challenges emerge early in probationary period
+- Zhou, Richard & Kim (2025), *Journal of Vocational Rehabilitation*: 30-year scoping review confirms post-hire AT is underexplored; researchers explicitly call for active post-hire tools
+- Singapore PMC13226117: autistic workers in participatory design study described exact feature set needed — EF scaffolding, communication drafting, self-reflection, not masking tools
+- Springer 2026 (10.1007/s10803-026-07313-4): first LLM study in applied employment setting — AI improved emotionally responsive verbal communication in autistic interns
+- Bennett et al. (2010): covert audio coaching produced durable job performance improvements maintained 4-5 weeks post-removal — the AI app is the scalable digital equivalent of this proven intervention
+- Cureus 2025: 75% of autistic workers receive no adjustments; adjustments = 3.14× employment odds
+- Georgia Tech NSF $500K (Jan 2026): LLM job coaching research — still pre-product, explicitly named post-probationary period as the unaddressed gap
+
+**Breakthroughs**
+1. **Solution architecture confirmed and defensible:** Three independent research streams (peer-reviewed scoping review, NSF-funded research, participatory user study) all converge on the same post-hire gap and the same solution direction. No product exists. Georgia Tech named the gap publicly and hasn't shipped. We're building it.
+2. **The two layers are one product:** Skill tracker → employment → retention coach is a continuous journey. Data from Layer 1 informs Layer 2. The pitch is not two separate ideas — it's one longitudinal tool that follows a resident from building skills to keeping a job.
+3. **Research-proven intervention model:** Covert Audio Coaching (Bennett 2010) establishes that real-time, in-context support for employed autistic adults produces durable skill transfer. The AI app is the next step in this evidence chain. We are not inventing a mechanism — we are scaling a proven one.
+4. **Competitive landscape is clear white space:** Full competitor table built across 10 platforms. Not one product combines resident-facing + milestone-based + AI next-step suggestions + post-hire retention for autistic adults in service-sector employment. The closest (Georgia Tech) is still research. The rest are pre-hire only or staff-facing tools.
+5. **Pitch narrative is locked:** SAP has 92% retention because they built job coaches, mentors, and manager training into the employment structure. AMC and the Phoenix Zoo don't have that. We built that infrastructure as an app.
+
+**Blockers**
+No technical blockers. Build planning begins tomorrow. Open question: confirm MyClip = LifeLoop (or separate). Open question: scope of Layer 1 vs. Layer 2 for the hackathon submission — leaning toward shipping Layer 1 fully and pitching Layer 2 as the vision.
+
