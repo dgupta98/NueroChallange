@@ -134,3 +134,39 @@ Six research files compiled today (23–26 + visit debrief + job skills landscap
 **Blockers**
 No technical blockers. Build planning begins tomorrow. Open question: confirm MyClip = LifeLoop (or separate). Open question: scope of Layer 1 vs. Layer 2 for the hackathon submission — leaning toward shipping Layer 1 fully and pitching Layer 2 as the vision.
 
+---
+
+## Oct 28 — Report 5: Research Completion + Design Foundation (AM/PM)
+
+**Report type:** Research synthesis / product design foundation
+
+---
+
+**Problem description & target user**
+Autistic adults and individuals with I/DD at First Place AZ — with confirmed co-occurring ADHD at high rates (Josh: "ADHD and autism are first cousins — really common"). The product must work for the full neurodivergent population, not just autism in isolation. Today's research focused on closing the design foundation: understanding the neurological mechanisms underneath what works, so every build decision is grounded in how these brains actually function — not how we assume they do.
+
+**Solution description**
+Unchanged from Oct 27 PM: two-layer resident-owned tool — skill milestone tracker (Layer 1, MVP) feeding into post-hire retention coach (Layer 2, pitch vision). Today's session added a critical design layer: the six ADHD neurological mechanisms that underlie every effective intervention for this population (Dr. Sasha Hamdani, psychiatrist, ADHD specialist). These mechanisms now serve as the product design filter — every feature must serve at least one of the six or it gets cut.
+
+**AI use**
+Same as Oct 27. Today added: shame-aware response architecture. The AI's first job in any difficult situation log is to externalize the cause before offering solutions. "Your manager communicated in a way that's genuinely hard to decode — that's a common structural gap, not a reflection on you." Research confirms shame directly crushes executive function (Hamdani); internalised blame is documented in 50% of autistic job loss cases (PMC9838300). An AI that inadvertently amplifies shame — through tone, failure-state messaging, or broken-streak notifications — will be abandoned.
+
+**Data use**
+Source: Dr. Sasha Hamdani transcript — "Learn 97% of ADHD Hacks in Under 17 Minutes" (psychiatrist, ADHD specialist, personal ADHD diagnosis). Six mechanisms extracted and mapped to specific product decisions:
+1. **Externalize working memory** — skill log is the external memory; voice capture at shift end; app holds all context between sessions
+2. **Engineer the start** — one-tap entry, pre-built scenario buttons, milestone units broken to smallest achievable step, minimum viable interaction path required for every feature
+3. **Regulate stimulation** — gamification (streaks, micro-celebrations, progress bars) is neurologically required not optional; novelty rotation in AI responses; community life events surfaced as regulation tools
+4. **Let the system rest** — no shame notifications for logging gaps; post-hard-shift response is validation first, advice second; "nothing much happened" is a valid session; app must never feel like a system to maintain
+5. **Regulate the body** — Physical domain in 360 tracker is first-class; sleep routine + movement are milestones with direct employment impact
+6. **Diffuse the shame** — the mechanism that determines whether every other feature gets used; every failure state, notification, and re-engagement flow must be written against shame
+
+**Breakthroughs**
+1. **Mechanism 6 is the product's secret weapon:** Shame is why every other productivity/tracking system gets abandoned by this population. The app that wins is not the most feature-rich one — it's the one that never makes someone feel bad for opening it. This is now an explicit design constraint, not an aspiration.
+2. **The skill tracker is an anti-shame device:** A resident with 30 logged milestones has external evidence that contradicts the internal narrative of "I can't follow through." Progress history is the counter-narrative to self-blame after job loss.
+3. **Design filter is complete:** Every feature will be evaluated against all six mechanisms before building. Features that fail mechanism 6 (shame) are cut or redesigned regardless of utility — shame prevents use regardless of how good the feature is.
+4. **The pitch addition from mechanism 6:** "Nearly half of autistic adults who lose jobs blame themselves — 'my personality and weirdness.' Not the fact that their employer never communicated clearly or provided the adjustments they were legally entitled to. Our tool gives them a counter-narrative. Evidence that the system was hard, not that they were broken. That's neuroscience, not therapy."
+5. **ADHD + autism co-occurrence confirmed as design requirement:** Product must work for the full population Josh described. ADHD-specific mechanisms (delayed initiation, stimulation threshold, dopamine dysregulation) apply directly to our users and must inform UX decisions.
+
+**Blockers**
+Research phase complete. Transitioning to build. No blockers on product direction — architecture, pitch narrative, design constraints, and feature set are all locked. Remaining open question: MyClip = LifeLoop confirmation (low priority for MVP — skill tracker does not depend on activity data integration for initial build).
+
