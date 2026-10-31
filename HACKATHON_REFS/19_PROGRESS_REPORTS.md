@@ -170,3 +170,36 @@ Source: Dr. Sasha Hamdani transcript — "Learn 97% of ADHD Hacks in Under 17 Mi
 **Blockers**
 Research phase complete. Transitioning to build. No blockers on product direction — architecture, pitch narrative, design constraints, and feature set are all locked. Remaining open question: MyClip = LifeLoop confirmation (low priority for MVP — skill tracker does not depend on activity data integration for initial build).
 
+
+---
+
+## Oct 30 — Report 6: AZACS Visit + Step Cards Proposal (PM)
+
+**Report type:** Partner visit debrief / school-stage proposal (submitted for Naman and Manan)
+**Note:** the Oct 29 AM report (AZACS visit) was submitted on the form but not logged here; its content is folded in below and in [29_AZACS_VISIT_DEBRIEF_OCT29.md](29_AZACS_VISIT_DEBRIEF_OCT29.md).
+
+---
+
+**Problem description & target user**
+Autistic students (often with ADHD) at Arizona Autism Charter Schools struggle to follow multi-step spoken instructions. They have to hold every step in working memory while doing the first one, so they lose track and look "off task." Teachers (about 1 staff member per 3 students) can't make visual supports for every instruction they say live, and skills learned at school often don't carry over to home. The same gap follows them into supported living (First Place AZ) and first jobs.
+
+**Solution description**
+Step Cards turns any spoken instruction into picture steps matched to each autistic student, and fades the help as they master it, from classroom to home to first job.
+
+**AI use**
+AI listens to a teacher's spoken instruction, breaks it into ordered steps (task analysis), and rewrites each step for every student's reading level and support needs, with pictograms. A fading rule shortens the cards as a student masters a routine. A teacher approves every card set, and "help me" always goes to a person.
+
+**Data use**
+Made-up demo student profiles only (nickname, reading level, support level, interests; no real names, photos or diagnoses). Teacher instructions as text. Free ARASAAC pictograms. The design is grounded in NCAEP 2020 evidence-based practices (task analysis, visual supports, prompting with fading, technology-aided instruction) and our AZACS and First Place AZ visits.
+
+**Breakthroughs**
+1. **AZACS visit (Oct 29):** classes are hands-on and multi-step (cooking, robotics, drone building, coding, dance), with 1 staff member per 3 students and a daily parent journal that parents read every day. Students could clearly recap what they were working on.
+2. **The shared problem across both partners:** following multi-step instructions and carrying skills into real life. Step Cards targets it directly, and our adult "pocket coach" becomes the later stage of the same engine: school → home → First Place → first job.
+3. **Verified evidence base:** Step Cards combines four of the 28 NCAEP 2020 evidence-based practices (Task Analysis, Visual Supports, Prompting, Technology-Aided Instruction & Intervention).
+4. **Clear white space:** Goally and Choiceworks need adults to build every schedule ahead of time, and Goblin Tools and Tiimo are single-user planners. None turns a live classroom instruction into per-student steps with fading and a teacher loop.
+
+**Blockers**
+Need team sign-off on Step Cards before the Nov 1 build. Need AZACS to confirm that multi-step directions are a daily challenge and whether classes have tablets. Need to choose which AI model/API we have access to.
+
+**Challenge partner guidance**
+AZACS: hands-on multi-step classes, 1:3 staffing, and a daily parent journal we'll feed rather than replace. First Place AZ: ADHD and autism often co-occur, a wearable trial failed for sensory reasons (so app-only), and shame-free design is essential.
