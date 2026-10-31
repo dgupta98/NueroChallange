@@ -203,3 +203,49 @@ Need team sign-off on Step Cards before the Nov 1 build. Need AZACS to confirm t
 
 **Challenge partner guidance**
 AZACS: hands-on multi-step classes, 1:3 staffing, and a daily parent journal we'll feed rather than replace. First Place AZ: ADHD and autism often co-occur, a wearable trial failed for sensory reasons (so app-only), and shame-free design is essential.
+
+---
+
+## Oct 29 — Report 7: Cross-Partner Synthesis + Step Cards Assessment (Dipesh, PM)
+
+**Report type:** Partner comparison / product direction assessment
+
+---
+
+**Problem description & target user**
+Two distinct partner populations sharing the same underlying neurological challenge. AZACS: autistic students (ages ~10–18, often AuDHD) who lose track of multi-step spoken instructions mid-task and look "off task" when the real problem is working memory overload. First Place AZ: autistic adults (18+, often AuDHD) who lose jobs not because they can't do the work but because they can't decode vague manager feedback, don't know how to request accommodations, and hit the probationary period without support. Different ages, same root cause: working memory failing under multi-step demand, in an environment designed for neurotypical cognition.
+
+**Solution description**
+Naman's Step Cards proposal (files 29–33) bridges the two partners into one product story for the first time. The same AI engine — take any instruction, break it into ordered steps, fade the help as the person masters it — serves a 12-year-old in a cooking class and a 22-year-old decoding a manager's message at AMC. The arc is now: AZACS classroom → home via parent journal → First Place AZ skill tracker → first job via pocket coach. One tool, one engine, four stages of a person's life.
+
+**AI use**
+Step Cards: speech-to-text → LLM breaks instruction into ordered JSON steps → second LLM pass rewrites each step for each student's reading level → ARASAAC pictograms mapped to step keywords → teacher approves → cards delivered to student tablets. Fading rule: once a student completes a routine X times without tapping "Help me," their card count reduces. Adult/work mode: same pipeline, text input instead of speech, adds one suggested clarifying question for ambiguous instructions ("How many cups counts as 'low'?").
+
+**Data use**
+Cross-partner synthesis drawn from: AZACS debrief (file 29), Step Cards proposal (file 30), Step Cards research (file 31), First Place visit debrief (file 22), post-hire retention research (files 25–26), ADHD mechanisms map (file 27), deep mechanisms research (file 28), Naman's team email (Oct 29 PM).
+
+**The shared problem across both partners — mapped:**
+
+| Common Challenge | At AZACS (student) | At First Place / Work (adult) |
+|---|---|---|
+| Working memory overload | Loses track of cooking steps mid-task | Forgets verbal manager instructions before acting on them |
+| Multi-step instruction failure | "Get your tray, wash your hands, measure flour, wait" → freezes at step 2 | "Restock concessions before the rush, tell Jake if cups are low" → unclear on both parts |
+| Support falls off | Aide redirects, which embarrasses → shame | Job coach exits at 90 days → no support during probation |
+| Skill doesn't transfer | School skill doesn't carry home | Workplace skill doesn't carry across shift changes |
+| Shame-free help-seeking | Won't raise hand in class | Won't ask manager to clarify instructions |
+| No resident/student-owned record | Staff note progress, student can't see it | Support staff track milestones, resident can't see them |
+
+Every design principle from files 27–28 (externalize working memory, engineer the start, diffuse shame, autistic inertia, monotropism) applies equally at both partners. The product is the same product.
+
+**Breakthroughs**
+1. **One story arc unlocked:** Before today the two partners felt like separate problems. Step Cards connects them. Leo at AZACS is Jordan at First Place in ten years. The pitch now has a human journey across the full product, not two disconnected features.
+2. **Step Cards is rubric-strong:** Assessed against all 10 criteria — NCAEP 2020 evidence base (4 of 28 verified EBPs) directly addresses Principled Innovation; live instruction handling addresses Creativity/Vision; one golden demo path (speak → cards appear → student taps → teacher sees who's stuck) directly addresses MVP and Functionality.
+3. **Fact-check flags from Naman accepted:** Three claims from earlier research files must be corrected before the deck: (a) Josh said "about half of graduates are employed" — not "50% lose their jobs"; (b) the SAP 92% retention figure has no verified source — drop it; (c) "job coaches leave at day 90" oversimplifies Arizona DES VR — coaches move to extended services after at least 90 days of stable work, not a hard cutoff.
+4. **Role clarity:** Per Naman's proposed split — Dipesh owns research write-up, adult/work stage of Step Cards, executive summary, and roadmap. This aligns with the work already done in files 23–28.
+5. **Adult mode is already designed:** The Situation Decoder (file 26) is the adult stage of the Step Cards engine. Jordan's manager saying "restock before the rush" maps exactly to the ambiguous feedback scenario. The adult mode adds one feature Step Cards doesn't have at school: a suggested clarifying question to ask the manager.
+
+**Open questions / blockers**
+- Team: need explicit sign-off that Step Cards is the product (not skill tracker alone) before Nov 1 build.
+- AZACS: confirm multi-step directions are a daily challenge; confirm tablet availability; confirm non-speaking student count (pictogram-only mode priority).
+- Josh / First Place: confirm exact wording of employment stat; confirm MyClip = LifeLoop; confirm most common work instruction types residents struggle with.
+- Tech: confirm which AI API the challenge provides access to before paying for anything.
