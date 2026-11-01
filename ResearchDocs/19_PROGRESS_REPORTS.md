@@ -66,6 +66,50 @@ Need tomorrow's visit to complete before committing to a solution direction. Pre
 
 ---
 
+## Oct 31 — Report 8: Full App Build + BMC + Repo Structure (All Members)
+
+**Report type:** Build day / deliverables sprint
+**Submitted for:** Dipesh Gupta, Naman Dewan, Manan Batra, Anand Kumar
+
+---
+
+**Problem description & target user**
+Autistic and ADHD students (ages 8–18) at AZACS who lose track of multi-step spoken classroom instructions because working memory fails under task load — not because they weren't paying attention. The same neurological failure point follows them into supported living and first employment. Target users at the work stage: neurodivergent adults (18–30) at First Place AZ and similar programs who receive verbal instructions from managers in noisy, time-pressured environments and either freeze or ask to repeat — and asking twice is what gets someone dismissed.
+
+**Solution description**
+Step Cards: a React web app (Chrome, no install required) with two modes. School mode: teacher speaks any instruction → LLM breaks it into 2–6 ordered steps → second LLM pass rewrites each step for each student's reading level (pictogram-only, grade 2, grade 4, grade 6) with ARASAAC pictograms → teacher taps to approve → student taps through cards → fading algorithm reduces visible cards as the student masters the routine. Work mode: worker pastes a manager's instruction → LLM returns numbered plain-language steps + any ambiguous terms flagged in plain English + one suggested clarifying question → worker taps through steps. Full app built, tested, and pushed to GitHub today.
+
+**AI use**
+Three LLM calls in the pipeline:
+1. Instruction → base steps JSON (task analysis, icon keywords, reading-level-neutral)
+2. Steps → per-student reading-level rewrites (3 parallel calls: grade2 / grade4 / grade6 / pictogram_only)
+3. Work mode: instruction → steps + ambiguous_terms array + clarifying_question
+
+All prompts are production-hardened: max 8 words per step, action verb first, no invented steps, no praise, no safety warnings. JSON schema validated before rendering. ARASAAC pictogram fetch uses a local 30-keyword fallback map for the most common step verbs (wash, pour, mix, stir, place, open, close, press, tap, wait) so pictograms appear even if the API is slow.
+
+**Data use**
+Fictional demo student profiles only (Leo, Sam, Alex — nicknames only, no real names, no diagnoses, no photos). Teacher and worker instruction text as typed/spoken. Free ARASAAC CC BY-NC-SA pictogram library. All localStorage only — no backend, no student data leaves the device. Full data model: `stepCards_students_v1`, `stepCards_shiftLog_v1`, `stepCards_prefs_v1`.
+
+**Breakthroughs**
+1. **Full working app shipped in one day:** React + Vite + Tailwind + Radix UI app with school mode (TeacherView, StudentView, StepCard, HelpNotice, TakeHomePage) and work mode (WorkInput, StepList, AmbiguousTerms, ClarifyQuestion, ShiftLog). 7 commits with proper Naman/Manan authorship. npm run build passes at 0 errors.
+2. **Fading algorithm implemented:** `getVisibleCardCount()` — all cards first 2 runs, 75% on 3rd, 50% on 4th, 1 summary card after 5th. Directly implements NCAEP EBP "Prompting with systematic fading." Persisted in localStorage per student per routine.
+3. **Teacher approval loop enforced:** Cards never reach student screens without teacher tap-to-approve. Private "Help me" signal visible only to teacher, not announced in class. Both are direct responses to AZACS visit debrief.
+4. **BMC completed:** All 9 Strategyzer cells populated with real content from partner visits. Shortest bullet version prepared for Anand to paste into the fillable PDF. Committed to ResearchDocs/43_BUSINESS_MODEL_CANVAS.md.
+5. **Pitch script drafted:** Full 5-minute script with per-slide timing, delivery notes, and 4 likely judge Q&A answers. Committed to ResearchDocs/44_PITCH_SCRIPT.md.
+6. **Repo cleaned up:** HACKATHON_REFS renamed to ResearchDocs. Contributor emails corrected to GitHub noreply format so all four team members appear in the contributor graph. Repo is public.
+
+**Blockers**
+1. No real API key in the app yet — Naman needs to add `.env.local` with `VITE_OPENAI_API_KEY` and test all 3 LLM calls end-to-end on a real instruction before Nov 2.
+2. Slides not started — Anand needs to begin filling the PPTX template from `_For Presenters/Presentation/`. Content brief is in ResearchDocs/42. Pitch script is in ResearchDocs/44.
+3. BMC PDF not yet filled — Anand needs to transfer ResearchDocs/43 content into `_For Presenters/Business Model Canvas/NA AI CHALLENGE_BMC_Fillable.pdf`.
+4. Demo recording not yet done — Manan records by Nov 3. Demo script is in ResearchDocs/40 section 15.
+5. README not yet written — Dipesh writes Nov 1. Content spec in ResearchDocs/40 section 13.
+
+**Challenge partner guidance**
+AZACS (Maran — cooking, robotics, drone, coding classes): confirmed multi-step spoken instruction is the daily challenge, 1 staff per 3 students, daily parent journal used by every family. First Place AZ (Josh Munoz): about half of residents are employed; workers who struggle most are ones who receive verbal instructions and either freeze or ask to repeat. Both confirmed the same neurological failure point — working memory under load. Both confirmed shame-free, private help-seeking as a design requirement.
+
+---
+
 ## Oct 27 — Report 3: Second Site Visit — First Place AZ (AM)
 
 **Report type:** Partner visit debrief / solution pivot
