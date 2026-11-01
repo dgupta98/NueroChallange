@@ -72,19 +72,19 @@ Before writing any code or making any UI decision, check the relevant research f
 
 | Topic | File to read first |
 |---|---|
-| What to build (overall) | `HACKATHON_REFS/33_STEP_CARDS_BUILD_PLAN.md` |
-| Complete tech stack + screens | `HACKATHON_REFS/40_TECHNICAL_BUILD_DOCUMENTATION.md` |
-| Revalidated tech + literature | `HACKATHON_REFS/41_REVALIDATED_TECH_AND_LITERATURE.md` |
-| Visual design rules | `HACKATHON_REFS/35_BUILD_REFERENCE_VISUAL_TECH_ACCESSIBILITY.md` (Parts 2, 6, 7) |
-| Adult mode (Jordan flow) | `HACKATHON_REFS/36_ADULT_MODE_FEATURE_SPEC.md` |
-| Responsible AI / privacy | `HACKATHON_REFS/32_STEP_CARDS_RESPONSIBLE_AI.md` |
-| Evidence base (NCAEP) | `HACKATHON_REFS/31_STEP_CARDS_RESEARCH.md` |
-| ADHD mechanisms | `HACKATHON_REFS/27_ADHD_MECHANISMS_PRODUCT_MAP.md` |
-| Deep mechanisms (RSD, time blindness) | `HACKATHON_REFS/28_DEEP_MECHANISMS_RESEARCH.md` |
-| Partner needs (AZACS) | `HACKATHON_REFS/29_AZACS_VISIT_DEBRIEF_OCT29.md` |
-| Partner needs (First Place AZ) | `HACKATHON_REFS/22_VISIT_DEBRIEF_OCT27.md` |
-| Deliverables spec | `HACKATHON_REFS/02_DELIVERABLES.md` |
-| Revised build plan | `HACKATHON_REFS/38_REVISED_PLAN_AND_EXEC_SUMMARY.md` |
+| What to build (overall) | `ResearchDocs/33_STEP_CARDS_BUILD_PLAN.md` |
+| Complete tech stack + screens | `ResearchDocs/40_TECHNICAL_BUILD_DOCUMENTATION.md` |
+| Revalidated tech + literature | `ResearchDocs/41_REVALIDATED_TECH_AND_LITERATURE.md` |
+| Visual design rules | `ResearchDocs/35_BUILD_REFERENCE_VISUAL_TECH_ACCESSIBILITY.md` (Parts 2, 6, 7) |
+| Adult mode (Jordan flow) | `ResearchDocs/36_ADULT_MODE_FEATURE_SPEC.md` |
+| Responsible AI / privacy | `ResearchDocs/32_STEP_CARDS_RESPONSIBLE_AI.md` |
+| Evidence base (NCAEP) | `ResearchDocs/31_STEP_CARDS_RESEARCH.md` |
+| ADHD mechanisms | `ResearchDocs/27_ADHD_MECHANISMS_PRODUCT_MAP.md` |
+| Deep mechanisms (RSD, time blindness) | `ResearchDocs/28_DEEP_MECHANISMS_RESEARCH.md` |
+| Partner needs (AZACS) | `ResearchDocs/29_AZACS_VISIT_DEBRIEF_OCT29.md` |
+| Partner needs (First Place AZ) | `ResearchDocs/22_VISIT_DEBRIEF_OCT27.md` |
+| Deliverables spec | `ResearchDocs/02_DELIVERABLES.md` |
+| Revised build plan | `ResearchDocs/38_REVISED_PLAN_AND_EXEC_SUMMARY.md` |
 
 ---
 
@@ -127,7 +127,7 @@ Every PR must not reduce the accessibility score. Run `axe` or Chrome Lighthouse
 | Written responses (Airtable) | Dipesh | Partner insights, exec summary, roadmap |
 | README | Dipesh | — |
 | Prompt PDF | Naman | — |
-| HACKATHON_REFS docs | Dipesh | Research files, plans, specs |
+| ResearchDocs | Dipesh | Research files, plans, specs |
 
 ---
 
