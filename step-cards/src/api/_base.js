@@ -8,7 +8,6 @@ export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, ma
   const body = JSON.stringify({
     model: import.meta.env.VITE_LLM_MODEL || 'openai/gpt-oss-20b',
     temperature,
-    response_format: { type: 'json_object' },
     max_tokens: maxTokens,
     messages: [
       { role: 'system', content: systemPrompt },
