@@ -13,6 +13,7 @@ export function getFadedSteps(steps, completionCount) {
     text: `${steps[0].text.replace(/\.$/, '')} (${steps.length} steps — tap when done)`,
     icon_keyword: steps[0].icon_keyword,
     pictogramUrl: steps[0].pictogramUrl,
+    pictogramUrls: steps[0].pictogramUrls,
     isSummaryCard: true,
   }]
   return steps.slice(0, count)

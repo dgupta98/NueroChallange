@@ -61,21 +61,24 @@ export function StepCard({ step, isDone, onDone, onHelp, isActive }) {
             {currentUrl ? (
               <img
                 src={currentUrl}
-                alt={step.text}
+                alt=""
                 width={120}
                 height={120}
                 className="object-contain"
+                onError={e => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextSibling.style.display = 'flex'
+                }}
               />
-            ) : (
-              <div
-                className="flex items-center justify-center text-5xl"
-                style={{ width: 120, height: 120 }}
-                role="img"
-                aria-label={step.text}
-              >
-                📋
-              </div>
-            )}
+            ) : null}
+            <div
+              className="items-center justify-center text-5xl"
+              style={{ width: 120, height: 120, display: currentUrl ? 'none' : 'flex' }}
+              role="img"
+              aria-label={step.text}
+            >
+              📋
+            </div>
 
             {/* Right arrow */}
             {hasVariations && (
