@@ -7,14 +7,14 @@ This file is automatically loaded by Claude Code. Follow every rule here exactly
 
 ## Team Members and Commit Identities
 
-| Name | Email | Role | GitHub handle (fill in) |
+| Name | GitHub noreply email (use this for commits) | GitHub handle | Role |
 |---|---|---|---|
-| Dipesh Gupta | dgupta98@asu.edu | Research, adult mode, written responses | — |
-| Naman Dewan | ndewan1@asu.edu | AI pipeline, prompts, prompt PDF | — |
-| Manan Batra | mbatra12@asu.edu | UI, student/teacher screens, demo recording | — |
-| Anand Kumar | akuma579@asu.edu | Slides, BMC, pitch script | — |
+| Dipesh Gupta | dgupta98@asu.edu | — | Research, adult mode, written responses |
+| Naman Dewan | namand6@users.noreply.github.com | @namand6 | AI pipeline, prompts, prompt PDF |
+| Manan Batra | mananbatraa@users.noreply.github.com | @mananbatraa | UI, student/teacher screens, demo recording |
+| Anand Kumar | akuma579@users.noreply.github.com | @akuma579 | Slides, BMC, pitch script |
 
-**Note on GitHub email matching:** For `Co-Authored-By:` to show credit on GitHub, the email must match the one linked to each person's GitHub account. If someone uses a personal email on GitHub, use that instead of the ASU email. Each person should run `git config user.email` on their machine and confirm which email they use.
+**Always use the GitHub noreply email** (`{handle}@users.noreply.github.com`) for `--author=` and `Co-Authored-By:` — this is what GitHub uses to link commits to contributor profiles, regardless of what email each person has on their account.
 
 ---
 
