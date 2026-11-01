@@ -2,7 +2,7 @@
 const GROQ_DIRECT = 'https://api.groq.com/openai/v1/chat/completions'
 const PROXY_PATH = '/api/chat'
 
-export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, maxTokens = 600 } = {}) {
+export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, maxTokens = 1200 } = {}) {
   const isDev = import.meta.env.DEV
 
   const body = JSON.stringify({
