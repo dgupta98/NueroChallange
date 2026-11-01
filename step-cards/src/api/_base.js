@@ -25,7 +25,19 @@ function extractJSON(raw) {
   throw new Error('Could not extract valid JSON from model response')
 }
 
-export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, maxTokens = 2000 } = {}) {
+// Groq's free tier allows 1,000 output tokens per minute for this model and counts max_tokens
+// against it up front, so keep max_tokens close to real use (steps JSON is ~150-300 tokens).
+const MAX_RETRIES = 3
+
+// Seconds to wait before retrying a 429: the retry-after header, else "try again in 1.92s" in the body
+function retryDelay(res, text) {
+  const header = Number(res.headers.get('retry-after'))
+  if (header > 0) return header
+  const match = text.match(/try again in ([\d.]+)s/)
+  return match ? Math.ceil(Number(match[1])) : 5
+}
+
+export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, maxTokens = 600 } = {}) {
   const isDev = import.meta.env.DEV
 
   const body = JSON.stringify({
@@ -40,25 +52,28 @@ export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, ma
   })
 
   let res
-  if (isDev) {
-    const key = import.meta.env.VITE_GROQ_API_KEY
-    if (!key) throw new Error('VITE_GROQ_API_KEY not set in .env.local')
-    res = await fetch(GROQ_DIRECT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-      body,
-    })
-  } else {
-    res = await fetch(PROXY_PATH, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-    })
-  }
-
-  if (!res.ok) {
+  for (let attempt = 0; ; attempt++) {
+    if (isDev) {
+      const key = import.meta.env.VITE_GROQ_API_KEY
+      if (!key) throw new Error('VITE_GROQ_API_KEY not set in .env.local')
+      res = await fetch(GROQ_DIRECT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+        body,
+      })
+    } else {
+      res = await fetch(PROXY_PATH, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      })
+    }
+    if (res.ok) break
     const err = await res.text()
-    throw new Error(`LLM API ${res.status}: ${err}`)
+    if (res.status !== 429 || attempt >= MAX_RETRIES) {
+      throw new Error(`LLM API ${res.status}: ${err}`)
+    }
+    await new Promise(resolve => setTimeout(resolve, retryDelay(res, err) * 1000))
   }
 
   const data = await res.json()

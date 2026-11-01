@@ -19,6 +19,6 @@ Return valid JSON only.
 Schema: { "instruction_summary": "title", "steps": [{ "n": 1, "text": "text" }], "ambiguous_terms": [{ "term": "phrase", "plain": "explanation" }], "clarifying_question": "sentence or null" }`
 
 export async function workModeBreak(instructionText) {
-  const result = await callLLM(SYSTEM_PROMPT, instructionText, { temperature: 0.2 })
+  const result = await callLLM(SYSTEM_PROMPT, instructionText, { temperature: 0.2, maxTokens: 800 })
   return validateSteps(result)
 }

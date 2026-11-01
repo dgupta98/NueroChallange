@@ -19,10 +19,14 @@ Return valid JSON only.
 Schema: { "student_id": "string", "steps": [{ "n": 1, "text": "text", "icon_keyword": "keyword" }] }`
 
 export async function rewriteForStudent(baseSteps, student) {
+  // grade6 keeps the steps unchanged, so skip the call and save rate limit
+  if (student.readingLevel === 'grade6') {
+    return { student_id: student.id, steps: baseSteps.steps }
+  }
   const userMessage = {
     student_id: student.id,
     reading_level: student.readingLevel,
     steps: baseSteps.steps,
   }
-  return callLLM(SYSTEM_PROMPT, userMessage)
+  return callLLM(SYSTEM_PROMPT, userMessage, { maxTokens: 400 })
 }
