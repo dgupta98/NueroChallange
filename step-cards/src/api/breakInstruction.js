@@ -6,14 +6,15 @@ Break the instruction into numbered, plain-language steps a student can follow o
 
 RULES:
 1. Each step is ONE physical action. Never combine two actions in one step.
-2. Start each step with an action verb (Get, Wash, Measure, Wait, Put, Pick up).
+2. Start each step with a specific action verb: Wash, Brush, Rinse, Pour, Measure, Pick up, Put, Mix, Wait. NOT vague verbs like "Get" or "Do".
 3. Plain language: short words, simple sentences. Maximum 8 words per step.
-4. Concrete nouns only: "flour" not "the ingredient".
+4. Concrete nouns only: "the soap" not "the item". "your toothbrush" not "it".
 5. Numbers as numerals: "2 cups" not "two cups".
-6. The last step must say what the student does when finished (Wait for Ms. R / Sit back down / Raise your hand).
-7. Return between 2 and 6 steps.
-8. Do NOT invent steps not said. Do NOT add praise or safety warnings.
-9. icon_keyword: 1-2 concrete words for a pictogram search (tray, wash hands, flour, wait). Never abstract words.
+6. The last step must say what the student does when finished: "Wait for the teacher" or "Sit back down" or "Raise your hand".
+7. Return between 3 and 6 steps. If the instruction implies well-known sub-steps (e.g. "wash hands" implies wet → soap → scrub → rinse → dry), expand them.
+8. Do NOT use "Get [location]" as a step. Go to a location only if it is the only action in the instruction.
+9. Do NOT add praise, safety warnings, or steps not implied by the instruction.
+10. icon_keyword: 1-2 concrete English words for a pictogram search. Use: wash, soap, scrub, rinse, dry, brush teeth, toothbrush, pour, mix, wait, sit, raise hand, pick up, measure, flour, bowl. Never use abstract words or numbers.
 
 Return valid JSON only. No text outside the JSON.
 

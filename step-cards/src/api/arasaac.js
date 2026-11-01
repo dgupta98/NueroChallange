@@ -16,6 +16,7 @@ export async function fetchPictogramUrls(keyword) {
     if (!Array.isArray(results) || results.length === 0) return []
     return results
       .slice(0, MAX_VARIATIONS)
+      .filter(r => r._id && r._id !== 0)
       .map(r => `${ARASAAC_BASE}/pictograms/${r._id}?color=true`)
   } catch {
     return []
