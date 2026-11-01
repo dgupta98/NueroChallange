@@ -56,3 +56,18 @@ export function addShiftLogEntry(entry) {
 export function loadShiftLog() {
   return load(KEYS.SHIFT_LOG, [])
 }
+
+const PICTO_PREFS_KEY = 'stepCards_pictoPrefs_v1'
+
+export function savePictogramPref(keyword, idx) {
+  if (!keyword) return
+  const prefs = load(PICTO_PREFS_KEY, {})
+  prefs[keyword.toLowerCase().trim()] = idx
+  save(PICTO_PREFS_KEY, prefs)
+}
+
+export function loadPictogramPref(keyword) {
+  if (!keyword) return 0
+  const prefs = load(PICTO_PREFS_KEY, {})
+  return prefs[keyword.toLowerCase().trim()] ?? 0
+}

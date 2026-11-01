@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ModeToggle } from './components/shared/ModeToggle'
 import { LoadingDots } from './components/shared/LoadingDots'
 import { CompletionScreen } from './components/shared/CompletionScreen'
@@ -19,9 +19,13 @@ const WORK_PHASE = {
   DONE: 'done',
 }
 
+const hasSpeechSupport = typeof window !== 'undefined' &&
+  ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
+
 export default function App() {
   const [mode, setMode] = useState('school')
   const [prefs, setPrefs] = useState(loadPrefs)
+  const [speechBannerDismissed, setSpeechBannerDismissed] = useState(false)
 
   // Work mode state
   const [workPhase, setWorkPhase] = useState(WORK_PHASE.INPUT)
@@ -69,6 +73,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-surface">
+      {/* Browser compatibility banner — shown when Web Speech API is unavailable */}
+      {!hasSpeechSupport && !speechBannerDismissed && (
+        <div
+          className="w-full flex items-center justify-between gap-4 px-4 py-3 bg-amber-100 text-amber-900 text-sm border-b border-amber-300"
+          role="alert"
+        >
+          <span>
+            Step Cards uses your browser&apos;s microphone for speech input. Please open this in Chrome or Edge for full functionality.
+          </span>
+          <button
+            onClick={() => setSpeechBannerDismissed(true)}
+            className="flex-shrink-0 flex items-center justify-center rounded hover:bg-amber-200 transition-colors font-bold"
+            style={{ minWidth: 44, minHeight: 44 }}
+            aria-label="Dismiss browser compatibility notice"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center justify-between mb-6">
