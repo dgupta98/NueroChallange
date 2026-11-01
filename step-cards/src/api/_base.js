@@ -2,29 +2,50 @@
 const GROQ_DIRECT = 'https://api.groq.com/openai/v1/chat/completions'
 const PROXY_PATH = '/api/chat'
 
-export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, maxTokens = 1200 } = {}) {
+// Extract JSON from model output that may contain reasoning text or markdown fences
+function extractJSON(raw) {
+  if (!raw || !raw.trim()) throw new Error('Empty response from model')
+
+  // Try direct parse first
+  try { return JSON.parse(raw) } catch (_) { /* fall through */ }
+
+  // Strip markdown code fences: ```json ... ``` or ``` ... ```
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (fenced) {
+    try { return JSON.parse(fenced[1].trim()) } catch (_) { /* fall through */ }
+  }
+
+  // Find the outermost {...} block — works when model wraps JSON in reasoning text
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start !== -1 && end !== -1 && end > start) {
+    try { return JSON.parse(raw.slice(start, end + 1)) } catch (_) { /* fall through */ }
+  }
+
+  throw new Error('Could not extract valid JSON from model response')
+}
+
+export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, maxTokens = 2000 } = {}) {
   const isDev = import.meta.env.DEV
 
   const body = JSON.stringify({
-    model: import.meta.env.VITE_LLM_MODEL || 'openai/gpt-oss-20b',
+    model: import.meta.env.VITE_LLM_MODEL || 'qwen/qwen3.8-27b',
     temperature,
     max_tokens: maxTokens,
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: typeof userMessage === 'string' ? userMessage : JSON.stringify(userMessage) },
+      // /no_think disables Qwen3 chain-of-thought reasoning, saving all tokens for the JSON output
+      { role: 'user', content: '/no_think ' + (typeof userMessage === 'string' ? userMessage : JSON.stringify(userMessage)) },
     ],
   })
 
   let res
   if (isDev) {
     const key = import.meta.env.VITE_GROQ_API_KEY
-    if (!key) throw new Error('VITE_GROQ_API_KEY not set in .env')
+    if (!key) throw new Error('VITE_GROQ_API_KEY not set in .env.local')
     res = await fetch(GROQ_DIRECT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${key}`,
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
       body,
     })
   } else {
@@ -41,7 +62,8 @@ export async function callLLM(systemPrompt, userMessage, { temperature = 0.1, ma
   }
 
   const data = await res.json()
-  return JSON.parse(data.choices[0].message.content)
+  const raw = data.choices?.[0]?.message?.content ?? ''
+  return extractJSON(raw)
 }
 
 export function validateSteps(json) {
