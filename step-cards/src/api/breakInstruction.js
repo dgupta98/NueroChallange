@@ -10,7 +10,7 @@ RULES:
 3. Plain language: short words, simple sentences. Maximum 8 words per step.
 4. Concrete nouns only: "the soap" not "the item". "your toothbrush" not "it".
 5. Numbers as numerals: "2 cups" not "two cups".
-6. The last step must say what the student does when finished: "Wait for the teacher" or "Sit back down" or "Raise your hand".
+6. Only add a "what to do when finished" step (e.g. "Return to your seat" / "Wait for the teacher") if the instruction implies the student has left their place and needs to return. Do NOT add it for self-contained actions like washing hands, brushing teeth, or any task that ends naturally.
 7. Return between 3 and 6 steps. If the instruction implies well-known sub-steps (e.g. "wash hands" implies wet → soap → scrub → rinse → dry), expand them.
 8. Do NOT use "Get [location]" as a step. Go to a location only if it is the only action in the instruction.
 9. Do NOT add praise, safety warnings, or steps not implied by the instruction.
