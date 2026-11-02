@@ -34,18 +34,18 @@ function LessonPage() {
   const { data: students } = useQuery({ ...studentsQuery(classId), enabled: !!classId });
   const { data: cards } = useQuery(cardsQuery(lessonId));
   const stepsFromState = useRouterState({ select: (s) => (s.location.state as { previewSteps?: Step[] } | null)?.previewSteps });
-  // Persist preview steps in sessionStorage so they survive refresh / back-navigation
+  const [previewSteps, setPreviewSteps] = useState<Step[] | undefined>(undefined);
+  // Client-only: persist/read preview steps via sessionStorage (safe from SSR)
   useEffect(() => {
     if (stepsFromState?.length) {
+      setPreviewSteps(stepsFromState);
       try { sessionStorage.setItem(`preview_steps_${lessonId}`, JSON.stringify(stepsFromState)); } catch {}
+    } else {
+      try {
+        const raw = sessionStorage.getItem(`preview_steps_${lessonId}`);
+        if (raw) setPreviewSteps(JSON.parse(raw) as Step[]);
+      } catch {}
     }
-  }, [lessonId, stepsFromState]);
-  const previewSteps = useMemo(() => {
-    if (stepsFromState?.length) return stepsFromState;
-    try {
-      const raw = sessionStorage.getItem(`preview_steps_${lessonId}`);
-      return raw ? (JSON.parse(raw) as Step[]) : undefined;
-    } catch { return undefined; }
   }, [lessonId, stepsFromState]);
 
   // Live updates from student devices
