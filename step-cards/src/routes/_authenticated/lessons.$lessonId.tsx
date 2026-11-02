@@ -103,6 +103,7 @@ function LessonPage() {
           thenActivity={lesson.then_activity}
           title={lesson.title}
           instruction={lesson.instruction}
+          {...(previewSteps ? { previewSteps } : {})}
         />
       )}
     </div>
@@ -448,6 +449,7 @@ function BoardView({
   thenActivity,
   title,
   instruction,
+  previewSteps,
 }: {
   lessonId: string;
   classId: string;
@@ -457,6 +459,7 @@ function BoardView({
   thenActivity: string;
   title: string;
   instruction: string;
+  previewSteps?: Step[];
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -522,20 +525,26 @@ function BoardView({
         </p>
       )}
 
-      <dl className="grid gap-3 sm:grid-cols-3">
-        <div className="surface p-4">
-          <dt className="text-sm text-muted-foreground">Finished</dt>
-          <dd className="font-display text-2xl font-semibold">{stats.routinesFinished} of {rows.length}</dd>
+      {rows.length === 0 && previewSteps?.length ? (
+        <div className="space-y-3">
+          <PreviewCards steps={previewSteps} />
         </div>
-        <div className="surface p-4">
-          <dt className="text-sm text-muted-foreground">Steps done</dt>
-          <dd className="font-display text-2xl font-semibold">{stats.stepsCompleted}</dd>
-        </div>
-        <div className="surface p-4">
-          <dt className="text-sm text-muted-foreground">Done without help</dt>
-          <dd className="font-display text-2xl font-semibold">{stats.independentPct === null ? "—" : `${stats.independentPct}%`}</dd>
-        </div>
-      </dl>
+      ) : (
+        <dl className="grid gap-3 sm:grid-cols-3">
+          <div className="surface p-4">
+            <dt className="text-sm text-muted-foreground">Finished</dt>
+            <dd className="font-display text-2xl font-semibold">{stats.routinesFinished} of {rows.length}</dd>
+          </div>
+          <div className="surface p-4">
+            <dt className="text-sm text-muted-foreground">Steps done</dt>
+            <dd className="font-display text-2xl font-semibold">{stats.stepsCompleted}</dd>
+          </div>
+          <div className="surface p-4">
+            <dt className="text-sm text-muted-foreground">Done without help</dt>
+            <dd className="font-display text-2xl font-semibold">{stats.independentPct === null ? "—" : `${stats.independentPct}%`}</dd>
+          </div>
+        </dl>
+      )}
 
       {studentsWithoutCards.length > 0 && (
         <div className="notice-info flex flex-wrap items-center justify-between gap-3 text-sm">
@@ -652,7 +661,16 @@ function BoardView({
             </p>
           </div>
           <LessonDetailsEditor lessonId={lessonId} title={title} instruction={instruction} />
-          <StudentCardsEditor lessonId={lessonId} rows={rows} />
+          {rows.length > 0 ? (
+            <StudentCardsEditor lessonId={lessonId} rows={rows} />
+          ) : previewSteps?.length ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                No student cards yet — these are the generated steps. Add students and generate their cards to edit per-student.
+              </p>
+              <PreviewCards steps={previewSteps} />
+            </div>
+          ) : null}
           <ThenEditor lessonId={lessonId} initial={thenActivity} />
         </section>
       )}
