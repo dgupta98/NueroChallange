@@ -39,8 +39,9 @@ RULES:
 3. Do NOT add praise or encouragement.
 4. Keep icon_keyword from the original unchanged.`;
 
-const stepSchema = z.object({ n: z.number(), text: z.string(), icon_keyword: z.string() });
-const baseStepSchema = stepSchema.extend({ timer_seconds: z.number().nullable() });
+// n is optional — model sometimes omits it; we always override it from array index anyway
+const stepSchema = z.object({ n: z.number().optional(), text: z.string(), icon_keyword: z.string() });
+const baseStepSchema = stepSchema.extend({ timer_seconds: z.number().nullable().optional() });
 const baseSchema = z.object({ title: z.string(), steps: z.array(baseStepSchema) });
 const rewriteSchema = z.object({ steps: z.array(stepSchema) });
 
