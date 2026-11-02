@@ -82,6 +82,11 @@ export default async function handler(req, res) {
 );
 
 writeFileSync(
+  join(out, "functions/ssr.func/package.json"),
+  JSON.stringify({ type: "module" })
+);
+
+writeFileSync(
   join(out, "functions/ssr.func/.vc-config.json"),
   JSON.stringify({
     runtime: "nodejs22.x",
