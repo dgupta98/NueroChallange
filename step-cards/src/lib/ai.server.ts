@@ -25,7 +25,9 @@ export async function generateJson<T>(schema: z.ZodType<T>, instructions: string
   const apiKey = process.env["GROQ_API_KEY"];
   if (!apiKey) throw new Error("AI is not set up for this app. Set GROQ_API_KEY.");
 
-  const provider = createOpenAI({ baseURL: GROQ_BASE, apiKey });
+  // compatibility:'compatible' forces /v1/chat/completions — newer SDK versions default
+  // to /v1/responses which Groq does not support.
+  const provider = createOpenAI({ baseURL: GROQ_BASE, apiKey, compatibility: "compatible" });
 
   try {
     // Use generateText with an explicit JSON instruction — compatible with any model.
