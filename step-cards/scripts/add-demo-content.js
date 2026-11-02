@@ -375,7 +375,8 @@ async function addLessons(classDef, teacherId) {
 
 async function main() {
   // ── 1. Ms. Rivera's lessons ──────────────────────────────────────────────────
-  const { data: rivera } = await db.auth.admin.getUserByEmail("demo.teacher@stepcards.app");
+  const { data: riveraList } = await db.auth.admin.listUsers({ page: 1, perPage: 100 });
+  const rivera = { user: riveraList?.users?.find((u) => u.email === "demo.teacher@stepcards.app") };
   if (!rivera?.user) { console.log("✗ Ms. Rivera not found — run seed-demo.js first"); process.exit(1); }
   const riveraId = rivera.user.id;
   console.log("Adding lessons for Ms. Rivera…");
@@ -383,7 +384,8 @@ async function main() {
 
   // ── 2. Create Mr. Chen if not yet present ────────────────────────────────────
   let chenId;
-  const { data: existingChen } = await db.auth.admin.getUserByEmail("demo.teacher2@stepcards.app");
+  const { data: allUsers2 } = await db.auth.admin.listUsers({ page: 1, perPage: 100 });
+  const existingChen = { user: allUsers2?.users?.find((u) => u.email === "demo.teacher2@stepcards.app") };
   if (existingChen?.user) {
     chenId = existingChen.user.id;
     console.log("Mr. Chen already exists, skipping auth creation");
