@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 
 import { ClassHeader } from "@/components/app/ClassHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { classCardsQuery, classQuery, lessonsQuery, studentsQuery, type StudentRow } from "@/lib/queries";
+import { classCardsQuery, classQuery, lessonsQuery, studentsQuery, type CardRow, type LessonRow, type StudentRow } from "@/lib/queries";
+import { collectionCounts, stickerById, stickerImage } from "@/lib/step-cards/stickers";
 import {
   AVATARS,
   FADING_OPTIONS,
@@ -78,7 +79,12 @@ function StudentsPage() {
             <p className="mt-3 text-muted-foreground">No students yet. Add the first one above.</p>
           )}
           {!!students?.length && (
-            <StudentsTable students={students} counts={studentCardCounts} />
+            <StudentsTable
+              students={students}
+              counts={studentCardCounts}
+              cards={cards ?? []}
+              lessons={lessons ?? []}
+            />
           )}
         </section>
 
@@ -104,15 +110,22 @@ function StudentsPage() {
   );
 }
 
+type OpenPanel = { id: string; mode: "view" | "edit" } | null;
+
 /** Compact table of students: avatar, nickname, level, fading, routines finished, stickers. */
 function StudentsTable({
   students,
   counts,
+  cards,
+  lessons,
 }: {
   students: StudentRow[];
   counts: Map<string, { finished: number; stickers: number }>;
+  cards: Pick<CardRow, "id" | "lesson_id" | "student_id" | "current_step" | "completed_at" | "sticker_id" | "help_count" | "steps">[];
+  lessons: LessonRow[];
 }) {
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [open, setOpen] = useState<OpenPanel>(null);
+  const lessonById = new Map(lessons.map((l) => [l.id, l] as const));
   return (
     <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
       <table className="w-full text-sm">
@@ -133,41 +146,164 @@ function StudentsTable({
             const fading = s.fading_enabled
               ? FADING_OPTIONS.find((f) => f.value === s.fading_pace)?.label ?? "Usual pace"
               : "Off";
+            const studentCards = cards.filter((card) => card.student_id === s.id);
+            const isOpen = open?.id === s.id;
             return (
-              <tr key={s.id} className="border-t border-border align-middle">
-                <td className="p-3">
-                  <span className="inline-flex items-center gap-2">
-                    <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-soft text-base text-primary">
-                      {avatarGlyph(s.avatar)}
+              <Fragment key={s.id}>
+                <tr className="border-t border-border align-middle">
+                  <td className="p-3">
+                    <span className="inline-flex items-center gap-2">
+                      <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-md bg-primary-soft text-base text-primary">
+                        {avatarGlyph(s.avatar)}
+                      </span>
+                      <span className="font-bold">{s.nickname}</span>
+                      {s.pictogram_only && <span className="chip px-1.5 py-0.5 text-xs">Pictures only</span>}
                     </span>
-                    <span className="font-bold">{s.nickname}</span>
-                    {s.pictogram_only && <span className="chip px-1.5 py-0.5 text-xs">Pictures only</span>}
-                  </span>
-                </td>
-                <td className="p-3 text-muted-foreground">{level}</td>
-                <td className="p-3 text-muted-foreground">{fading}</td>
-                <td className="p-3 text-right font-bold">{c.finished}</td>
-                <td className="p-3 text-right font-bold">{c.stickers}</td>
-                <td className="p-3 text-right">
-                  <button
-                    type="button"
-                    className="btn-outline text-xs"
-                    onClick={() => setEditingId(editingId === s.id ? null : s.id)}
-                  >
-                    {editingId === s.id ? "Close" : "Edit"}
-                  </button>
-                </td>
-              </tr>
+                  </td>
+                  <td className="p-3 text-muted-foreground">{level}</td>
+                  <td className="p-3 text-muted-foreground">{fading}</td>
+                  <td className="p-3 text-right font-bold">{c.finished}</td>
+                  <td className="p-3 text-right font-bold">{c.stickers}</td>
+                  <td className="p-3 text-right">
+                    <span className="inline-flex gap-1">
+                      <button
+                        type="button"
+                        className="btn-outline text-xs"
+                        aria-expanded={isOpen && open?.mode === "view"}
+                        onClick={() => setOpen(isOpen && open?.mode === "view" ? null : { id: s.id, mode: "view" })}
+                      >
+                        {isOpen && open?.mode === "view" ? "Close" : "View"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost text-xs"
+                        aria-expanded={isOpen && open?.mode === "edit"}
+                        onClick={() => setOpen(isOpen && open?.mode === "edit" ? null : { id: s.id, mode: "edit" })}
+                      >
+                        {isOpen && open?.mode === "edit" ? "Close" : "Edit"}
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+                {isOpen && (
+                  <tr>
+                    <td colSpan={6} className="bg-muted/20 p-4">
+                      {open?.mode === "view" ? (
+                        <StudentDetail student={s} cards={studentCards} lessonById={lessonById} />
+                      ) : (
+                        <StudentEditor student={s} onDone={() => setOpen(null)} />
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             );
           })}
         </tbody>
       </table>
-      {editingId && (
-        <div className="border-t border-border bg-muted/20 p-4">
-          {(() => {
-            const student = students.find((s) => s.id === editingId);
-            return student ? <StudentEditor student={student} onDone={() => setEditingId(null)} /> : null;
-          })()}
+    </div>
+  );
+}
+
+/** Per-student drill-down: finished routines + their earned sticker book. */
+function StudentDetail({
+  student,
+  cards,
+  lessonById,
+}: {
+  student: StudentRow;
+  cards: Pick<CardRow, "id" | "lesson_id" | "student_id" | "current_step" | "completed_at" | "sticker_id" | "help_count" | "steps">[];
+  lessonById: Map<string, LessonRow>;
+}) {
+  const finished = cards
+    .filter((c) => c.completed_at)
+    .sort((a, b) => (b.completed_at ?? "").localeCompare(a.completed_at ?? ""));
+  const inProgress = cards.filter((c) => !c.completed_at && c.current_step > 0);
+  const counts = collectionCounts(finished.map((c) => c.sticker_id));
+  const kinds = Object.keys(counts).length;
+  const totalStickers = Object.values(counts).reduce((a, b) => a + b, 0);
+  const helpTotal = cards.reduce((sum, c) => sum + (c.help_count ?? 0), 0);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+        <h3 className="font-display text-lg font-semibold">{student.nickname}'s progress</h3>
+        <p className="text-sm text-muted-foreground">
+          {finished.length} finished · {inProgress.length} in progress · {helpTotal} help {helpTotal === 1 ? "tap" : "taps"}
+        </p>
+      </div>
+
+      {/* Sticker book — unique stickers earned, with counts */}
+      <div>
+        <p className="field-label">
+          Sticker book ({totalStickers} earned, {kinds} different)
+        </p>
+        {totalStickers === 0 ? (
+          <p className="text-sm text-muted-foreground">No stickers yet. Stickers show up here after finished routines.</p>
+        ) : (
+          <ul className="mt-2 flex flex-wrap gap-3">
+            {Object.entries(counts).map(([stickerId, n]) => {
+              const sticker = stickerById(stickerId);
+              if (!sticker) return null;
+              return (
+                <li key={stickerId} className="relative flex w-24 flex-col items-center gap-1 rounded-lg border border-success/40 bg-success-soft p-2 text-center">
+                  {n > 1 && <span className="chip absolute right-1 top-1 px-1.5 py-0.5 text-xs">×{n}</span>}
+                  <img src={stickerImage(sticker)} alt="" width={56} height={56} loading="lazy" className="rounded-md object-contain" />
+                  <span className="text-xs font-bold leading-tight">{sticker.name}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Finished routines list */}
+      {finished.length > 0 && (
+        <div>
+          <p className="field-label">Finished routines</p>
+          <ul className="mt-2 divide-y divide-border rounded-lg border border-border bg-card">
+            {finished.map((c) => {
+              const lesson = lessonById.get(c.lesson_id);
+              const sticker = stickerById(c.sticker_id);
+              return (
+                <li key={c.id} className="flex items-center gap-3 p-2">
+                  {sticker ? (
+                    <img src={stickerImage(sticker)} alt="" width={32} height={32} loading="lazy" className="rounded object-contain" />
+                  ) : (
+                    <span className="inline-block h-8 w-8 rounded bg-muted" aria-hidden="true" />
+                  )}
+                  <span className="flex-1 truncate text-sm font-bold">{lesson?.title ?? "Routine"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {c.completed_at ? new Date(c.completed_at).toLocaleDateString() : ""}
+                  </span>
+                  {(c.help_count ?? 0) > 0 && (
+                    <span className="chip px-1.5 py-0.5 text-xs">{c.help_count} help</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {/* In-progress routines, if any */}
+      {inProgress.length > 0 && (
+        <div>
+          <p className="field-label">Working on now</p>
+          <ul className="mt-2 divide-y divide-border rounded-lg border border-border bg-card">
+            {inProgress.map((c) => {
+              const lesson = lessonById.get(c.lesson_id);
+              const total = Array.isArray(c.steps) ? c.steps.length : 0;
+              return (
+                <li key={c.id} className="flex items-center gap-3 p-2">
+                  <span className="flex-1 truncate text-sm font-bold">{lesson?.title ?? "Routine"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Step {c.current_step}{total ? ` of ${total}` : ""}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </div>
@@ -264,13 +400,34 @@ function CompletionDonut({
 /** Top stickers earned across the class — simple leaderboard-free summary. */
 function ClassStickerSummary({ classId }: { classId: string }) {
   const { data: cards } = useQuery(classCardsQuery(classId));
-  const totalStickers = (cards ?? []).filter((c) => c.completed_at).length;
-  if (totalStickers === 0) return null;
+  const earned = (cards ?? []).filter((c) => c.completed_at && c.sticker_id);
+  const totalFinished = (cards ?? []).filter((c) => c.completed_at).length;
+  const counts = collectionCounts(earned.map((c) => c.sticker_id));
+  const top = Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  if (totalFinished === 0) return null;
   return (
     <div className="surface p-5 text-sm">
-      <p className="text-muted-foreground">Sticker book</p>
-      <p className="text-2xl font-bold">{totalStickers} earned</p>
-      <p className="mt-1 text-muted-foreground">Across every finished routine in this class.</p>
+      <p className="text-muted-foreground">Class sticker book</p>
+      <p className="text-2xl font-bold">{totalFinished} earned</p>
+      <p className="mt-1 text-muted-foreground">
+        {Object.keys(counts).length} different sticker{Object.keys(counts).length === 1 ? "" : "s"} across the class.
+      </p>
+      {top.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {top.map(([stickerId, n]) => {
+            const sticker = stickerById(stickerId);
+            if (!sticker) return null;
+            return (
+              <li key={stickerId} className="relative inline-flex items-center gap-1 rounded-md border border-border bg-card px-1.5 py-1">
+                <img src={stickerImage(sticker)} alt="" width={28} height={28} loading="lazy" className="rounded object-contain" />
+                <span className="text-xs font-bold">×{n}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </div>
   );
 }

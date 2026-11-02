@@ -336,3 +336,41 @@ Demo school only — made-up nicknames (Leo, Mia, Cam, Sam, Jin), reading levels
 AZACS is the primary focus for Step Cards. Maran at AZACS confirmed that multi-step spoken instructions are the daily challenge across all their hands-on classes — cooking, robotics, drone building, coding, dance — with approximately 1 staff member per 3 students. The daily parent journal that every AZACS family reads is a direct integration point: Step Cards' take-home print feature feeds that journal without requiring teachers to write summaries. Maran also confirmed that students can clearly recall what they were working on when given visual step support, which validates the core mechanism. Every product decision — the 1:3 staffing ratio driving the "one tap to approve, private help signal" design, the pictogram-only mode for non-speaking students, the fading algorithm to reduce scaffolding as students master routines, the parent-facing print sheet — traces directly to what we learned at AZACS. First Place AZ (Josh Munoz) confirmed the same working memory failure pattern in their employed residents, establishing that the Step Cards engine is the same tool at a different life stage: AZACS classroom → home → First Place AZ supported living → first job.
 
 ---
+
+## Nov 2 — Report 10: Long-Instruction Splitting + Student Progress View (Dipesh)
+
+**Report type:** Build sprint / rubric-driven feature pass
+**Submitted for:** Dipesh Gupta
+
+---
+
+**Problem description & target user**
+Same primary users as Report 9 (AZACS students, ages 8–18, autistic / ADHD / AuDHD). This sprint closed four gaps surfaced while rehearsing the demo against the AZACS cooking-class scenario: (1) teachers who read out long multi-step routines (8–12 steps) were getting AI output capped at 4–5 cards, which broke the fading evidence base; (2) teacher-side changes weren't reflecting cleanly in the demo flow; (3) the students roster page showed counts but had no way to see *which* stickers each student had actually earned or *which* routines they finished; (4) the sticker book was wired to real student picks but had no demo coverage, so judges opening the demo saw empty books.
+
+**Solution description**
+Four concrete changes shipped to the live app:
+1. **Multi-part routines**: the AI prompt now returns a `{ title, parts: [{ title, steps }] }` shape. Long instructions (over 6 steps) are split into 1–4 sibling lessons with `routine_key` suffixed `:p1`, `:p2`, …, and titles suffixed `· Part k of N: <part title>`. The teacher review page shows a "Part k of N" chip and links to sibling parts.
+2. **Students page revamp**: left column is a compact roster table (avatar, nickname, reading level, fading, finished count, sticker count, View/Edit buttons); right column is a live-lesson donut chart (Finished / Working on it / Not started) plus a class sticker summary showing the top-5 earned stickers in the class.
+3. **Per-student drill-down**: tapping **View** on any student row expands to show that student's actual sticker book (color icons, ×N count badges), the full list of finished routines (title + sticker thumbnail + date + help-count chip), and any in-progress routines (`Step X of N`).
+4. **Demo sticker variety**: the `add-demo-content.js` seeder now pins each demo student to a "favourite" sticker category (Alex → trains, River → dinosaurs, Mel → sea, Kai → space, Fen → wild) and draws from inside that category per finished lesson. On re-run it backfills `sticker_id` for existing demo cards. Opening the demo now shows real, coherent sticker collections instead of empty books.
+
+**AI use**
+Unchanged pipeline (Groq Qwen 3.8B via `generateObject`), only the output schema moved to `parts[]`. Backward-compatible: the Zod schema accepts both legacy `{ steps }` and new `{ parts }` shapes, so no in-flight data breaks. Each part still runs through the per-student reading-level rewrite and ARASAAC pictogram enrichment.
+
+**Data use**
+Demo school only — made-up nicknames, reading levels, avatar selections. No real student data. ARASAAC CC BY-NC-SA pictograms via `api.arasaac.org`. Teacher instruction text is stored and reused only within the same teacher. All writes go through Supabase RLS-protected tables.
+
+**Breakthroughs**
+1. **Fading EBP preserved**: the ≤6-steps-per-card constraint from NCAEP 2020 Systematic Fading (file 31) is now enforced structurally, not by prompt-wording that the model would sometimes ignore. Long real-world routines (handwashing with 20-second scrub, kitchen setup) finally fit the evidence base without truncation.
+2. **Teacher accountability view**: a teacher can now open any student's row and see exactly what that student has finished, how many help taps they used, and which stickers they chose. This directly addresses the AZACS 1:3 staffing ratio problem — a staff member catching up on a student after absence gets the full picture in one tap.
+3. **Demo flow matches real flow**: the sticker book was previously the one feature where demo data diverged from the live flow. It now mirrors a real kid's collection pattern (sticks to one favourite book, fills it in over multiple sessions), which makes the sticker-book tab land for judges.
+4. **No schema migration required**: the multi-part design used suffix conventions on existing columns (`routine_key`, `title`) parseable via a shared `parsePartInfo` helper, so no DB migration was needed and the change was deployable the same day.
+
+**Blockers**
+1. **Demo students need backfill**: existing demo rows seeded before today have `sticker_id = null` on finished cards. Re-run `SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/add-demo-content.js` to backfill them deterministically. The script is idempotent.
+2. **Pre-existing TypeScript errors in `ai.server.ts`, `vite.config.ts`, and three marketing routes remain** — unrelated to this sprint, flagged for cleanup pass before Nov 5 submission.
+
+**Challenge partner guidance**
+This sprint was motivated by rehearsing against the AZACS cooking-class scenario Maran described on Oct 29. Her exact example — "wash hands, dry, get your apron, measure flour, level it off, pour into bowl" — produced only 4 cards under the old prompt, dropping half the routine. With multi-part splitting it now produces two linked lessons (hand-washing + flour-measuring), each within the 6-card fading limit, each with its own completion sticker. The per-student view also matches Maran's workflow: AZACS staff rotate across students and need to catch up on who finished what — the drill-down panel is the view they currently keep on sticky notes.
+
+---

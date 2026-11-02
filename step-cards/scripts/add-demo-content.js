@@ -36,15 +36,26 @@ const pictoUrl = (id) => id ? `${ARASAAC}/pictograms/${id}?color=true` : null;
 
 // Sticker IDs that match src/lib/step-cards/stickers.ts — picked per student per
 // finished lesson so the demo sticker book has variety instead of being empty.
-const DEMO_STICKERS = [
-  "trains-passenger-train", "trains-bullet-train", "trains-tram",
-  "dinosaurs-t-rex", "dinosaurs-triceratops", "dinosaurs-brachiosaurus",
-  "sea-whale", "sea-dolphin", "sea-octopus",
-  "space-rocket", "space-astronaut", "space-planet",
-  "wild-lion", "wild-elephant", "wild-giraffe",
-  "pets-dog", "pets-cat", "pets-rabbit",
-];
-function pickSticker(seed) { return DEMO_STICKERS[Math.abs(seed) % DEMO_STICKERS.length]; }
+// Each student is pinned to one "favourite" category so their book fills in
+// coherently (like a real kid who keeps picking the dinosaurs book).
+const DEMO_CATEGORIES = {
+  trains:    ["passenger-train", "bullet-train", "underground-train", "tram", "toy-train", "cable-car", "tourist-train"],
+  dinosaurs: ["t-rex", "triceratops", "brachiosaurus", "velociraptor", "iguanodon", "baryonyx", "dacentrurus", "dinosaur-nest"],
+  sea:       ["whale", "dolphin", "octopus", "shark", "sea-turtle", "crab", "starfish", "jellyfish", "seahorse"],
+  space:     ["rocket", "astronaut", "planet", "moon", "sun", "star", "comet", "flying-saucer", "saturn"],
+  wild:      ["lion", "elephant", "giraffe", "monkey", "tiger", "zebra", "panda", "kangaroo", "koala"],
+  pets:      ["dog", "cat", "rabbit", "horse", "guinea-pig", "parrot", "tortoise"],
+};
+const DEMO_CATEGORY_IDS = Object.keys(DEMO_CATEGORIES);
+function favouriteCategoryFor(studentIdx) {
+  return DEMO_CATEGORY_IDS[studentIdx % DEMO_CATEGORY_IDS.length];
+}
+function pickSticker(studentIdx, lessonSeed) {
+  const cat = favouriteCategoryFor(studentIdx);
+  const slugs = DEMO_CATEGORIES[cat];
+  const slug = slugs[Math.abs(lessonSeed) % slugs.length];
+  return `${cat}-${slug}`;
+}
 
 async function enrichSteps(stepList) {
   const ids = await Promise.all(stepList.map((s) => fetchPictogramId(s.icon_keyword)));
@@ -331,8 +342,9 @@ async function addLessons(classDef, teacherId) {
       // Backfill sticker_id on finished cards so demo sticker books aren't empty
       for (const card of existingCards ?? []) {
         if (card.completed_at && !card.sticker_id) {
-          const idx = students.findIndex((s) => s.id === card.student_id);
-          const stickerId = pickSticker((Math.max(0, idx) * 7 + lessonDef.daysAgo * 11 + bp.title.length) | 0);
+          const idx = Math.max(0, students.findIndex((s) => s.id === card.student_id));
+          const lessonSeed = (lessonDef.daysAgo * 11 + bp.title.length) | 0;
+          const stickerId = pickSticker(idx, lessonSeed);
           await db.from("lesson_cards").update({ sticker_id: stickerId }).eq("id", card.id);
         }
       }
@@ -431,7 +443,7 @@ async function addLessons(classDef, teacherId) {
       // Finished cards get a sticker so the demo sticker book is populated;
       // the sticker a student "chose" is deterministic per (student, lesson) pair.
       const stickerId = completedAt
-        ? pickSticker((idx * 7 + lessonDef.daysAgo * 11 + bp.title.length) | 0)
+        ? pickSticker(idx, (lessonDef.daysAgo * 11 + bp.title.length) | 0)
         : null;
       const feelingAt = feeling ? daysAgoISO(lessonDef.daysAgo, 450 + idx * 60) : null;
 
