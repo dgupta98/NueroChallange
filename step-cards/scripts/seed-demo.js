@@ -10,7 +10,7 @@
  *   Supabase dashboard → your project → Project Settings → API → service_role key
  */
 
-const { createClient } = require("@supabase/supabase-js");
+import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
