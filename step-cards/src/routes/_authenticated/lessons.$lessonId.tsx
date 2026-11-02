@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { StepCardView } from "@/components/cards/StepCardView";
 import { supabase } from "@/integrations/supabase/client";
-import { approveLesson, findPictures } from "@/lib/lessons.functions";
+import { approveLesson, findPictures, generateMissingCards } from "@/lib/lessons.functions";
 import { cardsQuery, lessonQuery, studentsQuery, type CardRow, type StudentRow } from "@/lib/queries";
 import { formatCode } from "@/lib/step-cards/codes";
 import { independence } from "@/lib/step-cards/metrics";
@@ -166,8 +166,8 @@ function ReviewView({
       <ThenEditor lessonId={lessonId} initial={thenActivity} />
 
       <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-lift)]">
-        <button type="button" className="btn-primary btn-lg" onClick={() => send.mutate()} disabled={send.isPending || noStudents}>
-          {send.isPending ? "Sending…" : noStudents ? "Add students to send" : `Send cards to ${rows.length} student${rows.length === 1 ? "" : "s"}`}
+        <button type="button" className="btn-primary btn-lg" onClick={() => send.mutate()} disabled={send.isPending}>
+          {send.isPending ? "Saving…" : noStudents ? "Save instruction" : `Send cards to ${rows.length} student${rows.length === 1 ? "" : "s"}`}
         </button>
         <button type="button" className="btn-ghost" onClick={() => discard.mutate()} disabled={discard.isPending}>
           Discard and start again
@@ -448,8 +448,18 @@ function BoardView({
   const queryClient = useQueryClient();
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [editing, setEditing] = useState(false);
+  const { data: allStudents } = useQuery({ ...studentsQuery(classId), enabled: !!classId });
   const stats = useMemo(() => independence(rows.map((r) => r.card)), [rows]);
   const sorted = [...rows].sort((a, b) => Number(!!b.card.help_step) - Number(!!a.card.help_step));
+  const genCards = useServerFn(generateMissingCards);
+  const generate = useMutation({
+    mutationFn: () => genCards({ data: { lessonId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cards", lessonId] });
+      queryClient.invalidateQueries({ queryKey: ["students", classId] });
+    },
+  });
+  const studentsWithoutCards = (allStudents ?? []).filter((s) => !rows.some((r) => r.student.id === s.id));
 
   const end = useMutation({
     mutationFn: async () => {
@@ -503,6 +513,19 @@ function BoardView({
           <dd className="font-display text-2xl font-semibold">{stats.independentPct === null ? "—" : `${stats.independentPct}%`}</dd>
         </div>
       </dl>
+
+      {studentsWithoutCards.length > 0 && (
+        <div className="notice-info flex flex-wrap items-center justify-between gap-3 text-sm">
+          <p>
+            <strong>{studentsWithoutCards.length} student{studentsWithoutCards.length === 1 ? "" : "s"} don't have cards yet</strong>
+            {" "}({studentsWithoutCards.map((s) => s.nickname).join(", ")}).
+          </p>
+          <button type="button" className="btn-outline text-sm shrink-0" onClick={() => generate.mutate()} disabled={generate.isPending}>
+            {generate.isPending ? "Generating…" : "Generate their cards"}
+          </button>
+          {generate.error && <p className="notice-error w-full">{generate.error.message}</p>}
+        </div>
+      )}
 
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-live="polite">
         {sorted.map(({ card, student }) => {

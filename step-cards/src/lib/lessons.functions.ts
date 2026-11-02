@@ -167,6 +167,92 @@ export const deleteClass = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Generate lesson_cards for any students in the class who don't have one yet.
+ * Safe to call at any lesson status. Re-uses existing cards as the step template
+ * when possible; falls back to re-calling the AI if no cards exist at all.
+ */
+export const generateMissingCards = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ lessonId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+
+    const { data: lesson } = await supabase
+      .from("lessons")
+      .select("id, class_id, instruction, title, routine_key")
+      .eq("id", data.lessonId)
+      .maybeSingle();
+    if (!lesson) throw new Error("We couldn't find that lesson.");
+
+    const [{ data: students }, { data: existingCards }] = await Promise.all([
+      supabase.from("students").select("id, reading_level, completion_history, fading_enabled, fading_pace, help_choice").eq("class_id", lesson.class_id).order("created_at"),
+      supabase.from("lesson_cards").select("student_id, steps").eq("lesson_id", data.lessonId),
+    ]);
+
+    const haveCard = new Set((existingCards ?? []).map((c) => c.student_id));
+    const newStudents = (students ?? []).filter((s) => !haveCard.has(s.id));
+    if (!newStudents.length) return { ok: true, generated: 0 };
+
+    // Derive base steps: prefer an existing grade6 card, else re-call AI
+    let enrichedBase: Step[];
+    if (existingCards?.length) {
+      const template = existingCards.find((c) => {
+        const s = (students ?? []).find((st) => st.id === c.student_id);
+        return s?.reading_level === "grade6";
+      }) ?? existingCards[0]!;
+      enrichedBase = template.steps as unknown as Step[];
+    } else {
+      const { generateJson } = await import("./ai.server");
+      const base = await generateJson(baseSchema, CLASSROOM_PROMPT, lesson.instruction);
+      if (!base?.steps?.length) throw new Error("Couldn't regenerate the steps. Try again.");
+      const raw: Step[] = base.steps.slice(0, 6).map((s, i) => ({
+        ...s,
+        n: i + 1,
+        timer_seconds: s.timer_seconds && s.timer_seconds >= 5 ? Math.min(Math.round(s.timer_seconds), 1800) : null,
+      }));
+      enrichedBase = await enrichStepsWithPictograms(raw, `${base.title} ${lesson.instruction}`);
+    }
+
+    // Rewrites for any new reading levels not covered by existing cards
+    const existingLevels = new Set((students ?? []).filter((s) => haveCard.has(s.id)).map((s) => s.reading_level as ReadingLevel));
+    const newLevels = [...new Set(newStudents.map((s) => s.reading_level as ReadingLevel))].filter(
+      (l) => l !== "grade6" && !existingLevels.has(l),
+    );
+    const rewrites: Partial<Record<ReadingLevel, Step[]>> = {};
+    if (newLevels.length) {
+      const forRewrite = enrichedBase.map(({ n, text, icon_keyword }) => ({ n, text, icon_keyword }));
+      const { generateJson } = await import("./ai.server");
+      const results = await Promise.all(
+        newLevels.map((level) =>
+          generateJson(rewriteSchema, REWRITE_PROMPT, JSON.stringify({ reading_level: level, steps: forRewrite })).catch(() => null),
+        ),
+      );
+      newLevels.forEach((level, i) => {
+        const r = results[i];
+        if (r) rewrites[level] = r.steps.map((s, idx) => ({ ...s, n: s.n ?? idx + 1 }));
+      });
+    }
+
+    const routineKey = lesson.routine_key ?? "";
+    const cards = newStudents.map((s) => ({
+      lesson_id: lesson.id,
+      class_id: lesson.class_id,
+      student_id: s.id,
+      steps: stepsForStudent(enrichedBase, rewrites, {
+        reading_level: s.reading_level as ReadingLevel,
+        completion_history: s.completion_history,
+        fading_enabled: s.fading_enabled,
+        fading_pace: s.fading_pace,
+        help_choice: s.help_choice,
+      }, routineKey) as unknown as never,
+    }));
+
+    const { error } = await supabase.from("lesson_cards").insert(cards);
+    if (error) throw new Error("Couldn't generate the cards. Please try again.");
+    return { ok: true, generated: cards.length };
+  });
+
 /** Search the symbol library again for one step, after the teacher changed its words. */
 export const findPictures = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
