@@ -1,6 +1,6 @@
 import { feelingById, feelingImage, teacherShouldNotice } from "@/lib/step-cards/feelings";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 
@@ -33,6 +33,7 @@ function LessonPage() {
   const classId = lesson?.class_id ?? "";
   const { data: students } = useQuery({ ...studentsQuery(classId), enabled: !!classId });
   const { data: cards } = useQuery(cardsQuery(lessonId));
+  const previewSteps = useRouterState({ select: (s) => (s.location.state as { previewSteps?: Step[] } | null)?.previewSteps });
 
   // Live updates from student devices
   useEffect(() => {
@@ -70,7 +71,15 @@ function LessonPage() {
         <p className="mt-2 text-muted-foreground prose-width">“{lesson.instruction}”</p>
       </div>
 
-      {lesson.status === "review" && <ReviewView lessonId={lessonId} classId={classId} rows={rows} thenActivity={lesson.then_activity} />}
+      {lesson.status === "review" && (
+        <ReviewView
+          lessonId={lessonId}
+          classId={classId}
+          rows={rows}
+          thenActivity={lesson.then_activity}
+          {...(previewSteps ? { previewSteps } : {})}
+        />
+      )}
       {lesson.status !== "review" && (
         <BoardView
           lessonId={lessonId}
@@ -92,15 +101,18 @@ function ReviewView({
   classId,
   rows,
   thenActivity,
+  previewSteps,
 }: {
   lessonId: string;
   classId: string;
   rows: { card: CardRow; student: StudentRow }[];
   thenActivity: string;
+  previewSteps?: Step[];
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const approve = useServerFn(approveLesson);
+  const noStudents = rows.length === 0;
 
   const send = useMutation({
     mutationFn: () => approve({ data: { lessonId } }),
@@ -122,14 +134,27 @@ function ReviewView({
 
   return (
     <div className="space-y-6">
-      {rows.length === 0 ? (
-        <div className="notice-info flex-col items-start gap-3 p-6 text-base">
-          <p><strong>No students in this class yet.</strong> Add students first — cards will be generated for each of them, personalised to their reading level.</p>
-          <Link to="/classes/$classId/students" params={{ classId }} className="btn-primary text-sm">
-            Add students now
-          </Link>
-          <p className="text-sm text-muted-foreground">Once you've added students, discard this and create a new instruction — the cards will be generated fresh for everyone.</p>
-        </div>
+      {noStudents ? (
+        <>
+          {previewSteps?.length ? (
+            <>
+              <p className="notice-info text-base">
+                Here's what your cards look like. Add students to this class to send personalised versions — each student gets their own reading level.
+              </p>
+              <PreviewCards steps={previewSteps} />
+            </>
+          ) : (
+            <p className="notice-info text-base">
+              Cards are ready. Add students to this class and they'll each get a personalised version.
+            </p>
+          )}
+          <div className="notice-subtle flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card/50 p-4 text-sm">
+            <p className="text-muted-foreground"><strong>No students yet.</strong> Add them to send personalised cards — each student gets their own reading level.</p>
+            <Link to="/classes/$classId/students" params={{ classId }} className="btn-outline text-sm shrink-0">
+              Add students
+            </Link>
+          </div>
+        </>
       ) : (
         <p className="notice-info text-base">
           Each student has their own version. Check them, change any words or pictures, then send. Students see nothing until you do.
@@ -141,8 +166,8 @@ function ReviewView({
       <ThenEditor lessonId={lessonId} initial={thenActivity} />
 
       <div className="sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card p-4 shadow-[var(--shadow-lift)]">
-        <button type="button" className="btn-primary btn-lg" onClick={() => send.mutate()} disabled={send.isPending || rows.length === 0}>
-          {send.isPending ? "Sending…" : `Send cards to ${rows.length} student${rows.length === 1 ? "" : "s"}`}
+        <button type="button" className="btn-primary btn-lg" onClick={() => send.mutate()} disabled={send.isPending || noStudents}>
+          {send.isPending ? "Sending…" : noStudents ? "Add students to send" : `Send cards to ${rows.length} student${rows.length === 1 ? "" : "s"}`}
         </button>
         <button type="button" className="btn-ghost" onClick={() => discard.mutate()} disabled={discard.isPending}>
           Discard and start again
@@ -150,6 +175,19 @@ function ReviewView({
         {send.error && <p className="notice-error w-full">{send.error.message}</p>}
       </div>
     </div>
+  );
+}
+
+/** Read-only grid of step cards shown when the teacher has no students yet. */
+function PreviewCards({ steps }: { steps: Step[] }) {
+  return (
+    <ol className="grid gap-4 md:grid-cols-2">
+      {steps.map((step, i) => (
+        <li key={i}>
+          <StepCardView step={step} index={i} total={steps.length} variant="preview" />
+        </li>
+      ))}
+    </ol>
   );
 }
 

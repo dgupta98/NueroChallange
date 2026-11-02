@@ -87,7 +87,7 @@ export const createLesson = createServerFn({ method: "POST" })
     const rewrites: Partial<Record<ReadingLevel, Step[]>> = {};
     levels.forEach((level, i) => {
       const r = rewriteResults[i];
-      if (r) rewrites[level] = r.steps;
+      if (r) rewrites[level] = r.steps.map((s, i) => ({ ...s, n: s.n ?? i + 1 }));
     });
 
     const routineKey = getRoutineKey(base.title);
@@ -122,7 +122,7 @@ export const createLesson = createServerFn({ method: "POST" })
       if (cardsError) throw new Error("Couldn't save the new cards. Please try again.");
     }
 
-    return { lessonId: lesson.id };
+    return { lessonId: lesson.id, previewSteps: enrichedBase };
   });
 
 /** Make a lesson live for students. Ends any other live lesson in the same class. */

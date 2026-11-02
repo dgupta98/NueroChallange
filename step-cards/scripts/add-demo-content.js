@@ -18,11 +18,37 @@ if (!url || !key) { console.error("Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KE
 
 const db = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 
+// ── ARASAAC pictogram helpers ─────────────────────────────────────────────────
+
+const ARASAAC = "https://api.arasaac.org/v1";
+
+async function fetchPictogramId(keyword) {
+  if (!keyword) return null;
+  try {
+    const res = await fetch(`${ARASAAC}/pictograms/en/search/${encodeURIComponent(keyword.toLowerCase())}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) && data[0]?._id ? data[0]._id : null;
+  } catch { return null; }
+}
+
+const pictoUrl = (id) => id ? `${ARASAAC}/pictograms/${id}?color=true` : null;
+
+async function enrichSteps(stepList) {
+  const ids = await Promise.all(stepList.map((s) => fetchPictogramId(s.icon_keyword)));
+  return stepList.map((s, i) => ({
+    ...s,
+    pictogramUrl: pictoUrl(ids[i]),
+    pictogramUrls: ids[i] ? [pictoUrl(ids[i])] : [],
+  }));
+}
+
 // ── Step builders ──────────────────────────────────────────────────────────────
 
-function steps(level, variants) {
+function buildSteps(level, variants) {
   const texts = variants[level] ?? variants.grade6;
-  return texts.map((text, i) => ({ n: i + 1, text, icon_keyword: null }));
+  const keywords = variants.pictogram_only ?? [];
+  return texts.map((text, i) => ({ n: i + 1, text, icon_keyword: keywords[i]?.toLowerCase() ?? null }));
 }
 
 // ── Lesson blueprints ─────────────────────────────────────────────────────────
@@ -286,9 +312,41 @@ async function addLessons(classDef, teacherId) {
     const bp = BLUEPRINTS[lessonDef.key];
     if (!bp) { console.log(`  ✗ No blueprint for ${lessonDef.key}`); continue; }
 
-    // Skip if lesson already exists
+    // If lesson already exists, patch its cards with pictogramUrls if missing
     const { data: existing } = await db.from("lessons").select("id").eq("class_id", cls.id).eq("title", bp.title).maybeSingle();
-    if (existing) { console.log(`  ~ ${classDef.code}/${bp.title} already exists, skipping`); continue; }
+    if (existing) {
+      const { data: existingCards } = await db.from("lesson_cards").select("id, steps, student_id").eq("lesson_id", existing.id);
+      const needsPatch = existingCards?.some((c) => Array.isArray(c.steps) && c.steps[0] && !c.steps[0].pictogramUrl);
+      if (needsPatch) {
+        console.log(`  ↻ Patching pictograms for ${classDef.code}/${bp.title}…`);
+        // Build enriched steps per reading level using the blueprint keywords
+        const levels = [...new Set(students.map((s) => s.reading_level ?? "grade6"))];
+        const enrichedByLevel = {};
+        for (const level of levels) {
+          enrichedByLevel[level] = await enrichSteps(buildSteps(level, bp.variants));
+        }
+        // Match each card to a student's reading level and apply the enriched steps
+        for (const card of (existingCards ?? [])) {
+          const student = students.find((s) => s.id === card.student_id);
+          const level = student?.reading_level ?? "grade6";
+          const enrichedSteps = enrichedByLevel[level] ?? enrichedByLevel["grade6"];
+          if (enrichedSteps) {
+            // Merge pictogramUrl/pictogramUrls into existing steps (preserving any edits to text)
+            const merged = card.steps.map((s, i) => ({
+              ...s,
+              icon_keyword: enrichedSteps[i]?.icon_keyword ?? s.icon_keyword,
+              pictogramUrl: enrichedSteps[i]?.pictogramUrl ?? null,
+              pictogramUrls: enrichedSteps[i]?.pictogramUrls ?? [],
+            }));
+            await db.from("lesson_cards").update({ steps: merged }).eq("id", card.id);
+          }
+        }
+        console.log(`  ✓ Pictograms patched for ${classDef.code}/${bp.title}`);
+      } else {
+        console.log(`  ~ ${classDef.code}/${bp.title} already exists, skipping`);
+      }
+      continue;
+    }
 
     const createdAt = daysAgoISO(lessonDef.daysAgo, 3600);
     const approvedAt = lessonDef.status !== "review" ? daysAgoISO(lessonDef.daysAgo, 3000) : null;
@@ -308,10 +366,17 @@ async function addLessons(classDef, teacherId) {
 
     if (lErr) { console.log(`  ✗ Lesson ${bp.title}:`, lErr.message); continue; }
 
+    // Pre-enrich steps for each reading level in this class (one ARASAAC batch per level)
+    const levels = [...new Set(students.map((s) => s.reading_level ?? "grade6"))];
+    const enrichedByLevel = {};
+    for (const level of levels) {
+      enrichedByLevel[level] = await enrichSteps(buildSteps(level, bp.variants));
+    }
+
     // Build lesson_cards for each student
     const cards = students.map((s, idx) => {
       const level = s.reading_level ?? "grade6";
-      const stepList = steps(level, bp.variants);
+      const stepList = enrichedByLevel[level] ?? enrichedByLevel["grade6"];
       const total = stepList.length;
 
       let currentStep = total;

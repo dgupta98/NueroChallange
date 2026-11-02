@@ -37,7 +37,8 @@ function ClassPage() {
 
   const create = useMutation({
     mutationFn: (instruction: string) => make({ data: { classId, instruction } }),
-    onSuccess: ({ lessonId }) => navigate({ to: "/lessons/$lessonId", params: { lessonId } }),
+    onSuccess: ({ lessonId, previewSteps }) =>
+      navigate({ to: "/lessons/$lessonId", params: { lessonId }, state: (prev) => ({ ...prev, previewSteps }) }),
   });
 
   const destroy = useMutation({
