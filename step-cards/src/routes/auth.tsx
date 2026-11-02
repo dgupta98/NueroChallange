@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 
 import { Logo } from "@/components/brand/Logo";
 import { DemoAccess } from "@/components/site/DemoAccess";
@@ -25,6 +25,15 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        navigate({ to: redirect ?? "/dashboard" });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [navigate, redirect]);
 
   async function handleSignIn(e: FormEvent) {
     e.preventDefault();
