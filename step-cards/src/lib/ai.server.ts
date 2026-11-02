@@ -3,7 +3,7 @@ import { generateText } from "ai";
 import type { z } from "zod";
 
 const GROQ_BASE = "https://api.groq.com/openai/v1";
-const MODEL = "qwen/qwen3-8b";
+const MODEL = "qwen/qwen3.8-27b";
 
 function friendlyError(error: unknown): Error {
   if (error && typeof error === "object" && "message" in error) {
