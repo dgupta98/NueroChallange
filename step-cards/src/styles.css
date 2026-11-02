@@ -1,0 +1,313 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Step Cards design system — "Mist blue-gray".
+ * Built from the team's neurodivergent design research:
+ * low-luminance off-white surfaces, dark gray (never black) text,
+ * one calm blue action color, sage for "done", teal (never yellow/red) for "needs help".
+ * Every color is oklch. Never hardcode colors in components.
+ */
+
+@theme inline {
+  --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-display: "Lexend", "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle: var(--subtle);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-help: var(--help);
+  --color-help-soft: var(--help-soft);
+  --color-help-foreground: var(--help-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  --background: oklch(0.972 0.005 258.3);
+  --foreground: oklch(0.276 0.023 248.7);
+  --card: oklch(0.992 0.002 250);
+  --card-foreground: oklch(0.276 0.023 248.7);
+  --popover: oklch(0.992 0.002 250);
+  --popover-foreground: oklch(0.276 0.023 248.7);
+
+  --primary: oklch(0.506 0.071 241.6);
+  --primary-hover: oklch(0.431 0.063 242.8);
+  --primary-foreground: oklch(0.99 0.003 250);
+  --primary-soft: oklch(0.955 0.011 243.7);
+
+  --secondary: oklch(0.934 0.013 251.6);
+  --secondary-hover: oklch(0.9 0.016 250);
+  --secondary-foreground: oklch(0.276 0.023 248.7);
+
+  --muted: oklch(0.934 0.013 251.6);
+  --muted-foreground: oklch(0.482 0.027 246.4);
+  --subtle: oklch(0.717 0.021 250.5);
+
+  --accent: oklch(0.955 0.011 243.7);
+  --accent-foreground: oklch(0.276 0.023 248.7);
+
+  --success: oklch(0.614 0.06 149.4);
+  --success-soft: oklch(0.943 0.013 152.6);
+  --success-foreground: oklch(0.438 0.05 151.4);
+
+  --help: oklch(0.533 0.075 196.3);
+  --help-soft: oklch(0.943 0.017 192.4);
+  --help-foreground: oklch(0.443 0.063 196.6);
+
+  --destructive: oklch(0.534 0.151 26.9);
+  --destructive-soft: oklch(0.957 0.015 22.4);
+  --destructive-foreground: oklch(0.47 0.13 26.9);
+
+  --border: oklch(0.905 0.012 250);
+  --border-strong: oklch(0.86 0.012 248);
+  --input: oklch(0.86 0.012 248);
+  --ring: oklch(0.506 0.071 241.6);
+
+  --shadow-card: 0 1px 2px oklch(0.276 0.023 248.7 / 0.05), 0 8px 24px -12px oklch(0.276 0.023 248.7 / 0.12);
+  --shadow-lift: 0 2px 4px oklch(0.276 0.023 248.7 / 0.05), 0 18px 40px -18px oklch(0.431 0.063 242.8 / 0.28);
+  --gradient-hero: radial-gradient(120% 90% at 85% 0%, oklch(0.934 0.013 251.6) 0%, transparent 60%),
+    radial-gradient(80% 70% at 0% 100%, oklch(0.943 0.013 152.6 / 0.7) 0%, transparent 60%);
+
+  /* Text sizes driven by the reader's display preference */
+  --text-base-size: 1rem;
+  --step-size: 1.375rem;
+}
+
+[data-fontsize="small"] {
+  --text-base-size: 0.9375rem;
+  --step-size: 1.125rem;
+}
+[data-fontsize="medium"] {
+  --text-base-size: 1rem;
+  --step-size: 1.375rem;
+}
+[data-fontsize="large"] {
+  --text-base-size: 1.1875rem;
+  --step-size: 1.75rem;
+}
+
+/* Calm mode: one switch that lowers saturation everywhere */
+[data-calm="true"] #app-root {
+  filter: saturate(0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-size: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-size: var(--text-base-size);
+    line-height: 1.6;
+    letter-spacing: 0.012em;
+    word-spacing: 0.04em;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ring);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  ::selection {
+    background: var(--color-primary-soft);
+  }
+}
+
+/* ---------- Layout ---------- */
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+}
+@utility container-narrow {
+  @apply mx-auto w-full max-w-3xl px-5 sm:px-8;
+}
+@utility prose-width {
+  max-width: 65ch;
+}
+
+/* ---------- Type ---------- */
+@utility eyebrow {
+  @apply font-display text-sm font-medium text-primary;
+}
+@utility display-xl {
+  @apply font-display text-4xl font-semibold sm:text-5xl lg:text-6xl;
+}
+@utility display-lg {
+  @apply font-display text-3xl font-semibold sm:text-4xl;
+}
+@utility lead {
+  @apply text-lg text-muted-foreground sm:text-xl;
+}
+@utility step-text {
+  font-size: var(--step-size);
+  line-height: 1.45;
+}
+
+/* ---------- Surfaces ---------- */
+@utility surface {
+  @apply rounded-xl border border-border bg-card;
+  box-shadow: var(--shadow-card);
+}
+@utility surface-quiet {
+  @apply rounded-xl border border-border bg-secondary/50;
+}
+@utility hero-wash {
+  background-image: var(--gradient-hero);
+}
+
+/* ---------- Buttons: every tap target is at least 44px ---------- */
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-primary px-5 font-bold text-primary-foreground hover:bg-primary-hover;
+}
+@utility btn-secondary {
+  @apply btn bg-secondary text-secondary-foreground hover:bg-secondary-hover;
+}
+@utility btn-outline {
+  @apply btn border border-border-strong bg-card text-foreground hover:bg-secondary;
+}
+@utility btn-ghost {
+  @apply btn text-foreground hover:bg-secondary;
+}
+@utility btn-help {
+  @apply btn border-2 border-help bg-help-soft font-bold text-help-foreground hover:bg-help-soft/70;
+}
+@utility btn-success {
+  @apply btn bg-success px-5 font-bold text-primary-foreground hover:bg-success-foreground;
+}
+@utility btn-lg {
+  @apply min-h-14 rounded-xl px-6 text-lg;
+}
+@utility btn-selected {
+  @apply btn bg-foreground text-background;
+}
+
+/* ---------- Forms ---------- */
+@utility field {
+  @apply min-h-11 w-full rounded-lg border border-input bg-card px-3.5 py-2 text-foreground placeholder:text-subtle focus:border-primary focus:ring-2 focus:ring-ring/30 focus:outline-none;
+  font-size: var(--text-base-size);
+}
+@utility field-label {
+  @apply mb-1.5 block text-sm font-bold text-foreground;
+}
+
+/* ---------- Inline notices (never pop-ups) ---------- */
+@utility notice {
+  @apply flex items-start gap-3 rounded-lg border px-4 py-3 text-sm;
+}
+@utility notice-error {
+  @apply notice border-destructive/30 bg-destructive-soft text-destructive-foreground;
+}
+@utility notice-info {
+  @apply notice border-primary/25 bg-primary-soft text-foreground;
+}
+@utility notice-help {
+  @apply notice border-help/40 bg-help-soft text-help-foreground;
+}
+@utility notice-success {
+  @apply notice border-success/40 bg-success-soft text-success-foreground;
+}
+
+/* ---------- Chips ---------- */
+@utility chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-sm font-medium text-muted-foreground;
+}
+
+/* ---------- Print (take-home sheets) ---------- */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  .print-sheet {
+    break-after: page;
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
+
+/* ---------- Break card: slow breathing circle (still when motion is reduced) ---------- */
+@keyframes breathe {
+  0%, 100% { transform: scale(0.9); }
+  50% { transform: scale(1.08); }
+}
+.breathe {
+  animation: breathe 8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .breathe {
+    animation: none;
+  }
+}

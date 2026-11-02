@@ -1,0 +1,1 @@
+ALTER TABLE public.lesson_cards ADD COLUMN IF NOT EXISTS sticker_id text;
