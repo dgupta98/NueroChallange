@@ -9,4 +9,11 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
+  environments: {
+    ssr: {
+      resolve: {
+        noExternal: true,
+      },
+    },
+  },
 });
