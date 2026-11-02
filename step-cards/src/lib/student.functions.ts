@@ -83,13 +83,14 @@ export const claimStudent = createServerFn({ method: "POST" })
  * ever touches the demo school.
  */
 export const demoStudentSignIn = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ nickname: z.enum(["Leo", "Mia"]) }).parse(data))
+  .inputValidator((data: unknown) => z.object({ nickname: z.enum(["Leo", "Mia", "Alex", "River"]) }).parse(data))
   .handler(async ({ data }) => {
-    const { DEMO_CLASS_CODES } = await import("./step-cards/demo");
+    const { demoClassCodesFor } = await import("./step-cards/demo");
+    const codes = demoClassCodesFor(data.nickname as "Leo" | "Mia" | "Alex" | "River");
     const db = await admin();
-    const { data: classes } = await db.from("classes").select("id, name, join_code").in("join_code", [...DEMO_CLASS_CODES]);
+    const { data: classes } = await db.from("classes").select("id, name, join_code").in("join_code", [...codes]);
     const spaces: { token: string; studentId: string; nickname: string; avatar: string; className: string }[] = [];
-    for (const code of DEMO_CLASS_CODES) {
+    for (const code of codes) {
       const cls = classes?.find((c) => c.join_code === code);
       if (!cls) continue;
       const { data: student } = await db

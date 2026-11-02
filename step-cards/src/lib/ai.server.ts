@@ -36,7 +36,9 @@ export async function generateJson<T>(schema: z.ZodType<T>, instructions: string
   });
 
   try {
-    return (await result.experimental_output) as T;
+    const output = await result.experimental_output;
+    if (output == null) throw new Error("AI returned an empty response.");
+    return output as T;
   } catch (error) {
     console.error("AI call failed", error);
     throw friendlyError(error);

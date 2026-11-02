@@ -65,7 +65,7 @@ export const createLesson = createServerFn({ method: "POST" })
 
     const { generateJson } = await import("./ai.server");
     const base = await generateJson(baseSchema, CLASSROOM_PROMPT, data.instruction);
-    if (!base.steps.length) throw new Error("Couldn't turn that into steps. Try saying it a different way.");
+    if (!base?.steps?.length) throw new Error("Couldn't turn that into steps. Try saying it a different way.");
     const baseSteps: Step[] = base.steps.slice(0, 6).map((s, i) => ({
       ...s,
       n: i + 1,

@@ -8,9 +8,11 @@ describe("demo school", () => {
     for (const code of DEMO_CLASS_CODES) expect(isValidCode(code)).toBe(true);
   });
 
-  it("only offers Leo and Mia as demo students", () => {
+  it("offers Leo, Mia, Alex, and River as demo students", () => {
     expect(isDemoStudentName("Leo")).toBe(true);
     expect(isDemoStudentName("Mia")).toBe(true);
+    expect(isDemoStudentName("Alex")).toBe(true);
+    expect(isDemoStudentName("River")).toBe(true);
     expect(isDemoStudentName("Sam")).toBe(false);
   });
 });

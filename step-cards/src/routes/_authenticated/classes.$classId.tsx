@@ -41,25 +41,36 @@ function ClassPage() {
   if (isLoading) return <p className="text-muted-foreground">Loading class…</p>;
   if (!cls) return <p className="notice-error">We couldn't find this class.</p>;
 
-  const active = lessons?.find((l) => l.status === "live" || l.status === "review");
+  const queued = lessons?.filter((l) => l.status === "review") ?? [];
+  const live = lessons?.find((l) => l.status === "live");
   const noStudents = students && students.length === 0;
 
   return (
     <div className="space-y-8">
       <ClassHeader classId={classId} name={cls.name} joinCode={cls.join_code} current="class" />
 
-      {active && (
+      {live && (
         <Link
           to="/lessons/$lessonId"
-          params={{ lessonId: active.id }}
-          className={`${active.status === "live" ? "notice-success" : "notice-info"} items-center justify-between text-base`}
+          params={{ lessonId: live.id }}
+          className="notice-success items-center justify-between text-base"
         >
-          <span>
-            <strong>{active.status === "live" ? "Cards are live:" : "Ready for your check:"}</strong> {active.title}
-          </span>
-          <span className="font-bold underline">{active.status === "live" ? "Open class board" : "Review cards"}</span>
+          <span><strong>Cards are live:</strong> {live.title}</span>
+          <span className="font-bold underline">Open class board</span>
         </Link>
       )}
+
+      {queued.map((q) => (
+        <Link
+          key={q.id}
+          to="/lessons/$lessonId"
+          params={{ lessonId: q.id }}
+          className="notice-info items-center justify-between text-base"
+        >
+          <span><strong>Ready for your check:</strong> {q.title}</span>
+          <span className="font-bold underline">Review cards</span>
+        </Link>
+      ))}
 
       {noStudents ? (
         <div className="notice-info flex-col items-start gap-3 p-6 text-base">
