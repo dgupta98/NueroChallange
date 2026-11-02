@@ -122,9 +122,19 @@ function ReviewView({
 
   return (
     <div className="space-y-6">
-      <p className="notice-info text-base">
-        Each student has their own version. Check them, change any words or pictures, then send. Students see nothing until you do.
-      </p>
+      {rows.length === 0 ? (
+        <div className="notice-info flex-col items-start gap-3 p-6 text-base">
+          <p><strong>No students in this class yet.</strong> Add students first — cards will be generated for each of them, personalised to their reading level.</p>
+          <Link to="/classes/$classId/students" params={{ classId }} className="btn-primary text-sm">
+            Add students now
+          </Link>
+          <p className="text-sm text-muted-foreground">Once you've added students, discard this and create a new instruction — the cards will be generated fresh for everyone.</p>
+        </div>
+      ) : (
+        <p className="notice-info text-base">
+          Each student has their own version. Check them, change any words or pictures, then send. Students see nothing until you do.
+        </p>
+      )}
 
       <StudentCardsEditor lessonId={lessonId} rows={rows} />
 
