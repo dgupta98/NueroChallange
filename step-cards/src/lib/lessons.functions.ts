@@ -62,7 +62,6 @@ export const createLesson = createServerFn({ method: "POST" })
       .eq("class_id", data.classId)
       .order("created_at");
     if (studentsError) throw new Error("Couldn't load the students in this class.");
-    if (!students?.length) throw new Error("Add at least one student to this class first.");
 
     const { generateJson } = await import("./ai.server");
     const base = await generateJson(baseSchema, CLASSROOM_PROMPT, data.instruction);
@@ -118,8 +117,10 @@ export const createLesson = createServerFn({ method: "POST" })
           help_choice: s.help_choice,
         }, routineKey) as unknown as never,
     }));
-    const { error: cardsError } = await supabase.from("lesson_cards").insert(cards);
-    if (cardsError) throw new Error("Couldn't save the new cards. Please try again.");
+    if (cards.length > 0) {
+      const { error: cardsError } = await supabase.from("lesson_cards").insert(cards);
+      if (cardsError) throw new Error("Couldn't save the new cards. Please try again.");
+    }
 
     return { lessonId: lesson.id };
   });

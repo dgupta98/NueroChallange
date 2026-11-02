@@ -72,20 +72,20 @@ function ClassPage() {
         </Link>
       ))}
 
-      {noStudents ? (
-        <div className="notice-info flex-col items-start gap-3 p-6 text-base">
-          <p><strong>Add your students first.</strong> Use nicknames only — Step Cards never needs real names.</p>
-          <Link to="/classes/$classId/students" params={{ classId }} className="btn-primary">
+      <InstructionComposer
+        initialText={reuseText}
+        busy={create.isPending}
+        error={create.error?.message ?? null}
+        onSubmit={(text) => create.mutate(text)}
+      />
+
+      {noStudents && (
+        <div className="notice-info flex-col items-start gap-3 p-5 text-sm">
+          <p><strong>No students yet.</strong> Add them before sending cards — use nicknames only, no real names needed.</p>
+          <Link to="/classes/$classId/students" params={{ classId }} className="btn-outline text-sm">
             Add students
           </Link>
         </div>
-      ) : (
-        <InstructionComposer
-          initialText={reuseText}
-          busy={create.isPending}
-          error={create.error?.message ?? null}
-          onSubmit={(text) => create.mutate(text)}
-        />
       )}
 
       <section aria-labelledby="history-heading">
