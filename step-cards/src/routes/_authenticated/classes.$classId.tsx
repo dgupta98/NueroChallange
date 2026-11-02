@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { ClassHeader } from "@/components/app/ClassHeader";
 import { InstructionComposer } from "@/components/app/InstructionComposer";
-import { createLesson } from "@/lib/lessons.functions";
+import { createLesson, deleteClass } from "@/lib/lessons.functions";
 import { classQuery, lessonsQuery, studentsQuery } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/classes/$classId")({
@@ -28,14 +28,21 @@ function ClassPage() {
   const { classId } = Route.useParams();
   const navigate = useNavigate();
   const make = useServerFn(createLesson);
+  const remove = useServerFn(deleteClass);
   const { data: cls, isLoading } = useQuery(classQuery(classId));
   const { data: students } = useQuery(studentsQuery(classId));
   const { data: lessons } = useQuery(lessonsQuery(classId));
   const [reuseText, setReuseText] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const create = useMutation({
     mutationFn: (instruction: string) => make({ data: { classId, instruction } }),
     onSuccess: ({ lessonId }) => navigate({ to: "/lessons/$lessonId", params: { lessonId } }),
+  });
+
+  const destroy = useMutation({
+    mutationFn: () => remove({ data: { classId } }),
+    onSuccess: () => navigate({ to: "/dashboard" }),
   });
 
   if (isLoading) return <p className="text-muted-foreground">Loading class…</p>;
@@ -103,26 +110,62 @@ function ClassPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1">
-                <Link to="/lessons/$lessonId" params={{ lessonId: l.id }} className="btn-outline text-sm">
-                  {l.status === "review" ? "Check cards" : "View and edit"}
-                </Link>
-                <button
-                  type="button"
-                  className="btn-ghost text-sm"
-                  onClick={() => {
-                    setReuseText(l.instruction);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  disabled={!!noStudents}
-                >
-                  Use again
-                </button>
+                  <Link to="/lessons/$lessonId" params={{ lessonId: l.id }} className="btn-outline text-sm">
+                    {l.status === "review" ? "Check cards" : "View and edit"}
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn-ghost text-sm"
+                    onClick={() => {
+                      setReuseText(l.instruction);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    Use again
+                  </button>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
           <p className="mt-3 text-muted-foreground">Your instructions will appear here, so you can reuse routines.</p>
+        )}
+      </section>
+
+      {/* Danger zone */}
+      <section className="border-t border-border pt-8">
+        <h2 className="font-display text-base font-semibold text-destructive">Delete class</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Permanently removes this class, all its students, and all instruction history. This cannot be undone.
+        </p>
+        {!confirmDelete ? (
+          <button
+            type="button"
+            className="btn-outline mt-3 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground text-sm"
+            onClick={() => setConfirmDelete(true)}
+          >
+            Delete class
+          </button>
+        ) : (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p className="text-sm font-medium">Delete <strong>{cls.name}</strong> and all its data?</p>
+            <button
+              type="button"
+              className="btn-primary bg-destructive hover:bg-destructive/90 text-sm"
+              disabled={destroy.isPending}
+              onClick={() => destroy.mutate()}
+            >
+              {destroy.isPending ? "Deleting…" : "Yes, delete permanently"}
+            </button>
+            <button
+              type="button"
+              className="btn-ghost text-sm"
+              onClick={() => setConfirmDelete(false)}
+            >
+              Cancel
+            </button>
+            {destroy.error && <p className="notice-error w-full">{destroy.error.message}</p>}
+          </div>
         )}
       </section>
     </div>

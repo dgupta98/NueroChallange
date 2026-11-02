@@ -145,6 +145,28 @@ export const approveLesson = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Permanently delete a class and all its data. Only the owning teacher can do this. */
+export const deleteClass = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ classId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: cls } = await supabase.from("classes").select("id, teacher_id").eq("id", data.classId).maybeSingle();
+    if (!cls) throw new Error("Class not found.");
+    if (cls.teacher_id !== context.userId) throw new Error("Only the class teacher can delete it.");
+    // Delete in dependency order (lesson_cards → lessons → student_devices → students → class)
+    const { data: lessonIds } = await supabase.from("lessons").select("id").eq("class_id", data.classId);
+    if (lessonIds?.length) {
+      await supabase.from("lesson_cards").delete().in("lesson_id", lessonIds.map((l) => l.id));
+    }
+    await supabase.from("lessons").delete().eq("class_id", data.classId);
+    await supabase.from("student_devices").delete().eq("class_id", data.classId);
+    await supabase.from("students").delete().eq("class_id", data.classId);
+    const { error } = await supabase.from("classes").delete().eq("id", data.classId);
+    if (error) throw new Error("Couldn't delete the class. Please try again.");
+    return { ok: true };
+  });
+
 /** Search the symbol library again for one step, after the teacher changed its words. */
 export const findPictures = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
