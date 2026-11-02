@@ -54,29 +54,35 @@ writeFileSync(
 import server from "./dist/server/server.js";
 
 export default async function handler(req, res) {
-  const proto = req.headers["x-forwarded-proto"] ?? "https";
-  const host  = req.headers["host"] ?? "localhost";
-  const url   = new URL(req.url, \`\${proto}://\${host}\`);
+  try {
+    const proto = req.headers["x-forwarded-proto"] ?? "https";
+    const host  = req.headers["host"] ?? "localhost";
+    const url   = new URL(req.url, \`\${proto}://\${host}\`);
 
-  const headers = new Headers();
-  for (const [k, v] of Object.entries(req.headers)) {
-    if (v != null) headers.set(k, Array.isArray(v) ? v.join(", ") : v);
+    const headers = new Headers();
+    for (const [k, v] of Object.entries(req.headers)) {
+      if (v != null) headers.set(k, Array.isArray(v) ? v.join(", ") : v);
+    }
+
+    let body;
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      body = chunks.length ? Buffer.concat(chunks) : undefined;
+    }
+
+    const request  = new Request(url.toString(), { method: req.method, headers, body });
+    const response = await server.fetch(request);
+
+    const respHeaders = {};
+    response.headers.forEach((v, k) => { respHeaders[k] = v; });
+    res.writeHead(response.status, respHeaders);
+    res.end(Buffer.from(await response.arrayBuffer()));
+  } catch (err) {
+    console.error("[ssr] handler error:", err);
+    res.writeHead(500, { "content-type": "text/plain" });
+    res.end("Internal Server Error: " + (err?.message ?? String(err)));
   }
-
-  let body;
-  if (req.method !== "GET" && req.method !== "HEAD") {
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
-    body = chunks.length ? Buffer.concat(chunks) : undefined;
-  }
-
-  const request  = new Request(url.toString(), { method: req.method, headers, body });
-  const response = await server.fetch(request);
-
-  const respHeaders = {};
-  response.headers.forEach((v, k) => { respHeaders[k] = v; });
-  res.writeHead(response.status, respHeaders);
-  res.end(Buffer.from(await response.arrayBuffer()));
 }
 `.trim()
 );
