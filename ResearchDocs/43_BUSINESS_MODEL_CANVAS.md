@@ -1,6 +1,8 @@
 # Business Model Canvas — Step Cards
-**Team Kaleidoscope | Author: Dipesh | Date: Oct 31, 2026**
+**Team Kaleidoscope | Author: Dipesh | Date: Nov 2, 2026**
 **Anand: copy each cell below into the Strategyzer fillable PDF (`_For Presenters/Business Model Canvas/NA AI CHALLENGE_BMC_Fillable.pdf`)**
+
+**Live app:** https://nuero-challange.vercel.app/ · **Repo:** https://github.com/dgupta98/NueroChallange
 
 ---
 
@@ -12,7 +14,7 @@
 *(Centre cell — the heart of the canvas)*
 
 **For teachers (AZACS):**
-Turn any spoken classroom instruction into personalized picture step cards for each student — in seconds, live, without any setup. Support fades as the student masters the routine, building independence instead of dependence.
+Turn any spoken classroom instruction into personalized picture step cards for each student — in seconds, live, without any setup. Long instructions auto-split into multi-part lessons (Part 1 of 3, Part 2 of 3…). Support fades as the student masters the routine. Teachers see a per-student sticker book that doubles as a progress record (which routines were finished independently, where help was asked).
 
 **For neurodivergent workers (First Place AZ / employment):**
 Turn a manager's verbal instruction into numbered plain-language steps, with ambiguous terms flagged and a suggested clarifying question — so a worker can act confidently without asking to repeat it twice.
@@ -83,22 +85,26 @@ Embedded relationship. We are in the classroom, measuring, adjusting. Teacher ha
 ### 5. KEY ACTIVITIES
 *(Left side — what we do)*
 
-**Core AI pipeline:**
+**Core AI pipeline (Groq Qwen3-32B):**
 - Speech → text (Web Speech API, free)
-- Text → structured steps JSON (LLM Call 1)
-- Steps → per-student reading-level versions (LLM Call 2, parallel)
-- Instruction → adult workplace steps + ambiguous terms + clarifying question (LLM Call 3)
+- Text → structured lesson JSON with auto-split into parts if long (CLASSROOM_PROMPT)
+- Steps → per-student reading-level rewrites (REWRITE_PROMPT, parallel per student)
+- Each step keyword → ARASAAC pictogram URL (API + local fallback map)
+- Instruction → adult workplace steps + ambiguous terms + clarifying question (adult mode)
 
-**Pictogram matching:**
-- Step keyword → ARASAAC pictogram URL (API + local fallback map)
+**Backend (Supabase):**
+- Postgres with Row Level Security — teachers only see their own classes/students
+- Realtime subscriptions keep student cards in sync as teachers approve
+- Supabase Auth with magic-link email sign-in
 
-**Fading algorithm:**
-- Track completion history per student per routine
-- Reduce visible card count on subsequent runs (independence-building mechanism)
+**Fading + progress:**
+- Track per-student runs per routine; reduce visible card count as mastery grows
+- Record `steps_on_own` and `help_taps` per card; roll up to a per-student sticker book
+- Teacher-facing drill-down shows which routines each student finished independently vs. with help
 
 **Teacher approval loop:**
 - Cards never reach students without teacher review + tap to approve
-- Teacher sees who needs help (private "Help me" signal)
+- Private "Help me" signal routes only to the teacher's device
 
 **Research and partner engagement:**
 - AZACS and First Place AZ visits, debriefs, open questions answered
@@ -110,11 +116,12 @@ Embedded relationship. We are in the classroom, measuring, adjusting. Teacher ha
 *(Left side — what we need)*
 
 **Technology:**
-- LLM API access (OpenAI gpt-4o-mini or challenge-provided model) — ~$0.001–0.003 per instruction
-- ARASAAC pictogram library (free, CC BY-NC-SA)
+- Groq API running Qwen3-32B — ~$0.001 per instruction, ~1–2s latency (lives inside teacher's attention span)
+- Supabase (Postgres, Auth, Realtime, RLS) — free tier covers pilot
+- ARASAAC pictogram library (free, CC BY-NC-SA, Sergio Palao attribution)
 - Web Speech API (free, browser built-in — Chrome/Edge)
-- React + Vite + Tailwind + Radix UI (all open source, free)
-- Vercel free tier for hosting (static React app)
+- TanStack Start (SSR React) + Tailwind + Radix UI (open source)
+- Vercel for hosting — live at https://nuero-challange.vercel.app/
 
 **Evidence base:**
 - NCAEP 2020 — 28 verified EBPs, four of which Step Cards implements
@@ -137,7 +144,9 @@ Embedded relationship. We are in the classroom, measuring, adjusting. Teacher ha
 | **First Place AZ / Josh Munoz** | Adult stage validation, employment program context | Adult mode that addresses his direct product ask |
 | **ARASAAC** | 35,000+ free AAC pictograms, CC BY-NC-SA | Attribution in-app and in README |
 | **Google / Chrome** | Web Speech API (free) | — |
-| **OpenAI / Anthropic** | LLM API for instruction breakdown and rewriting | — |
+| **Groq** | LLM inference (Qwen3-32B) for instruction breakdown and rewriting | — |
+| **Supabase** | Backend (Postgres, Auth, Realtime, RLS) on free tier | — |
+| **Vercel** | Hosting (TanStack Start SSR) on free tier | — |
 | **ASU / Spark Center** | Challenge framework, mentors, launchpad access | Participation, prototype, pitch |
 
 ---
@@ -146,18 +155,20 @@ Embedded relationship. We are in the classroom, measuring, adjusting. Teacher ha
 *(Bottom left)*
 
 **During hackathon (current):**
-- LLM API: ~$0.001–0.003 per instruction breakdown. At 50 instructions/day: ~$0.15/day, ~$4.50/month. Negligible.
-- ARASAAC: Free
-- Hosting: Free (Vercel free tier, static app)
+- Groq API (Qwen3-32B): ~$0.001 per instruction. At 50 instructions/day: ~$0.05/day. Negligible.
+- Supabase: Free tier (500 MB db, 2 GB bandwidth) — covers pilot comfortably
+- Vercel: Free tier covers hosting
+- ARASAAC: Free (CC BY-NC-SA)
 - Development: Team time only
 
 **Post-pilot (Year 1 projections):**
-- LLM API costs scale with usage. At 1,000 instructions/day: ~$3/day = ~$90/month. Still low.
-- Hosting: Free tier sufficient for pilot; Vercel Pro at ~$20/month for production
+- Groq API scales linearly. At 1,000 instructions/day: ~$1/day = ~$30/month.
+- Supabase Pro at $25/month unlocks production scale (8 GB db, daily backups, more Realtime channels)
+- Vercel Pro at $20/month for production hosting + custom domain
 - Ongoing development: Grant-funded or sponsored by school district
 - Main cost driver: Team time for pilot support, iteration, documentation
 
-**Cost advantage:** Because everything except the LLM API call is free (Web Speech, ARASAAC, open-source stack), the marginal cost per additional school is essentially zero beyond the API calls.
+**Cost advantage:** Marginal cost per additional school is essentially zero beyond the ~$1/day in Groq calls. Nothing in the stack is proprietary or locked-in — ARASAAC is CC-licensed, Groq is drop-in-replaceable with other OpenAI-compatible providers, Supabase is Postgres under the hood.
 
 ---
 
@@ -207,20 +218,20 @@ For each cell, keep text to 3–5 bullet points maximum — judges scan, they do
 
 **Shortest version for the PDF (bullets only):**
 
-**Value Propositions:** Spoken instruction → per-student picture step cards in seconds. No setup. Fades as student masters routine. Same engine: classroom to first job.
+**Value Propositions:** Spoken instruction → per-student picture step cards in seconds. Long instructions auto-split into multi-part lessons. Fades as student masters routine. Teacher-facing sticker book doubles as progress record. Same engine scales classroom → first job.
 
-**Customer Segments:** Special ed teachers (AZACS). Autistic/ADHD students 8–18. Neurodivergent adults in first employment. Parents, school principals, employment coordinators.
+**Customer Segments:** Special ed teachers (AZACS). Autistic/ADHD students 8–18. Neurodivergent adults in first employment (First Place AZ). Parents, school principals, employment coordinators.
 
-**Channels:** Direct AZACS pilot → AZ Dept of Education → CEC teacher networks. First Place AZ Transition Academy for adult stage.
+**Channels:** Direct AZACS pilot → AZ Dept of Education → CEC teacher networks. First Place AZ Transition Academy for adult stage. Live demo at nuero-challange.vercel.app.
 
 **Customer Relationships:** 6-week embedded pilot. Published outcome. Replication guide. App-based (no ongoing support needed for daily use).
 
-**Key Activities:** LLM instruction breakdown. Per-student reading-level rewrite (parallel). ARASAAC pictogram fetch. Fading algorithm. Teacher approval loop.
+**Key Activities:** Groq Qwen3-32B instruction breakdown + part-splitting. Per-student reading-level rewrite (parallel). ARASAAC pictogram fetch. Fading algorithm. Teacher approval loop. Per-student progress drill-down.
 
-**Key Resources:** LLM API. ARASAAC (free). Web Speech API (free). NCAEP 2020 evidence base. AZACS + First Place AZ partner access.
+**Key Resources:** Groq API (Qwen3-32B). Supabase (Postgres + Auth + Realtime + RLS). ARASAAC (free). Web Speech API (free). NCAEP 2020 evidence base. AZACS + First Place AZ partner access.
 
-**Key Partners:** AZACS (pilot site). First Place AZ (adult validation). ARASAAC (pictograms). OpenAI/Anthropic (LLM). ASU/Spark Center (challenge).
+**Key Partners:** AZACS (pilot site). First Place AZ (adult validation). ARASAAC (pictograms, Sergio Palao). Groq (LLM inference). Supabase (backend). Vercel (hosting). ASU/Spark Center (challenge).
 
-**Cost Structure:** LLM API ~$0.001/instruction. Hosting free (Vercel). Dev: team time + grants. Low marginal cost per additional school.
+**Cost Structure:** Groq ~$0.001/instruction. Supabase + Vercel free tier for pilot. Dev: team time + grants. Marginal cost per additional school ≈ $1/day.
 
 **Revenue Streams:** IDEA/NSF grants (Stage 1). Per-teacher SaaS $200–500/year (Stage 2). Employer accessibility licensing + AZ DES VR program (Stage 3).

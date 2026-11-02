@@ -1,6 +1,7 @@
 # Pitch Script — Step Cards
-**Team Kaleidoscope | Author: Anand | Date: Oct 31, 2026**
+**Team Kaleidoscope | Author: Anand | Date: Nov 2, 2026**
 **Launchpad: Nov 6, Scottsdale SkySong | 5-minute pitch**
+**Live demo URL (open in a tab before the pitch):** https://nuero-challange.vercel.app/
 
 ---
 
@@ -45,13 +46,19 @@
 ## SLIDE 3 — SOLUTION + DEMO (75 seconds)
 
 **Setup:**
-> "Step Cards listens to a spoken instruction. In under three seconds, it breaks it into numbered plain-language steps with pictograms matched to each action — customized to each student's reading level. The teacher reviews and approves before anything reaches a student screen."
+> "Step Cards listens to a spoken instruction. In under three seconds, it breaks it into numbered plain-language steps with pictograms matched to each action — customized to each student's reading level. The teacher reviews and approves before anything reaches a student screen. The app is live right now at nuero-challange.vercel.app."
 
-**Live demo handoff (if Manan is demoing):**
-> "Let me show you. [Manan demo: teacher speaks 'wash your hands before handling food ingredients', cards appear for three students at different reading levels, teacher taps approve, student taps through steps]"
+**Live demo handoff (Manan drives the deployed app):**
+> "Let me show you — this is the production app running on Vercel, Supabase, and Groq. [Manan: speak 'wash your hands then open the fridge and take out the eggs, bread, and butter and place them on the counter' into the composer. Cards appear for three students at different reading levels. Point out: 'The instruction was long, so the AI auto-split it into Part 1 of 2 and Part 2 of 2 — the student finishes one part, gets a sticker, and comes back for the next.' Teacher taps approve. Student taps through steps.]"
+
+**Multi-part splitting (new):**
+> "That split you just saw is what twenty-minute cooking classes actually sound like. We tested it on real AZACS routines and the AI reliably breaks a nine-step instruction into coherent parts — each one short enough to fit on a student's attention span, each one earning its own sticker."
 
 **If no live demo — narrate the recording:**
-> "On screen: a teacher speaks a six-word instruction. The app produces per-student step cards in under three seconds. Student one sees single-word pictogram cards. Student two sees four-word steps. Student three sees the full instruction. All from one spoken sentence."
+> "On screen: a teacher speaks an instruction. The app produces per-student step cards in under three seconds. Student one sees single-word pictogram cards. Student two sees four-word steps. Student three sees the full instruction. All from one spoken sentence."
+
+**Teacher's progress view (new):**
+> "And here is what the teacher sees when they tap any student. Every sticker they've earned — organized by routine, with 'help' chips showing exactly where a student needed support. One screen replaces the clipboard the teacher currently carries around the classroom."
 
 **Adult mode:**
 > "Same engine, different output. A worker pastes a manager's instruction. They get numbered steps, any ambiguous terms flagged in plain language, and a suggested clarifying question — so they can act without asking to repeat themselves."
@@ -83,7 +90,7 @@
 > "Our marginal cost per additional school is essentially zero beyond the LLM API call — about one tenth of a cent per instruction. Everything else — pictograms, speech recognition, hosting — is free."
 
 **Closing ask:**
-> "We have one partner ready to pilot. We have the evidence base. We have a working product. What we need is the runway to run the AZACS pilot, publish the outcome, and take that outcome to the next school."
+> "We have one partner ready to pilot. We have the evidence base. We have a deployed, working product you can open on your phone right now at nuero-challange.vercel.app. What we need is the runway to run the AZACS pilot, publish the outcome, and take that outcome to the next school."
 
 **Hard close:**
 > "Step Cards. Spoken instruction in. Independence out."
@@ -98,6 +105,6 @@
 - If the demo fails: narrate from memory. Keep moving. Do not apologize.
 - Q&A likely questions:
   - "Why can't a teacher just use existing visual schedule apps?" → Answer: every existing tool requires the teacher to build the routine ahead of time. Step Cards handles unplanned instructions in real time. That's the gap no existing tool fills.
-  - "What about privacy?" → Answer: speech goes to the browser's built-in API, no student names or diagnoses ever leave the device in an API call. No backend. No student data stored off-device.
+  - "What about privacy?" → Answer: speech goes to the browser's built-in Web Speech API; the only text that reaches the LLM is the instruction itself — never a student's name, photo, or diagnosis. Student data (completion counts, stickers) is stored in Supabase under Postgres Row Level Security so a teacher can only ever see their own classes.
   - "Is this FDA-regulated as assistive technology?" → Answer: No. It's a productivity tool for teachers and workers, not a medical device. Same category as any edtech app.
   - "What does AZACS think?" → Answer: we were in their classroom. The teacher asked if she could keep using it after the hackathon.

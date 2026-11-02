@@ -8,6 +8,7 @@
 *.zip
 
 # Raw presentation source files (binary)
+_For Presenters/
 For Presenters/
 
 # macOS
