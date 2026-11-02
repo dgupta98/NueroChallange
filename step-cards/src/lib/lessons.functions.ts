@@ -145,6 +145,21 @@ export const approveLesson = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Delete a lesson and all its cards. Only the teacher who created it can do this. */
+export const deleteLesson = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ lessonId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { data: lesson } = await supabase.from("lessons").select("id, created_by").eq("id", data.lessonId).maybeSingle();
+    if (!lesson) throw new Error("Lesson not found.");
+    if (lesson.created_by !== context.userId) throw new Error("Only the teacher who created this can delete it.");
+    await supabase.from("lesson_cards").delete().eq("lesson_id", data.lessonId);
+    const { error } = await supabase.from("lessons").delete().eq("id", data.lessonId);
+    if (error) throw new Error("Couldn't delete the instruction. Please try again.");
+    return { ok: true };
+  });
+
 /** Permanently delete a class and all its data. Only the owning teacher can do this. */
 export const deleteClass = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

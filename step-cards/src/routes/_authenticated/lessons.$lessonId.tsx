@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { StepCardView } from "@/components/cards/StepCardView";
 import { supabase } from "@/integrations/supabase/client";
-import { approveLesson, findPictures, generateMissingCards } from "@/lib/lessons.functions";
+import { approveLesson, deleteLesson, findPictures, generateMissingCards } from "@/lib/lessons.functions";
 import { cardsQuery, lessonQuery, studentsQuery, type CardRow, type StudentRow } from "@/lib/queries";
 import { formatCode } from "@/lib/step-cards/codes";
 import { independence } from "@/lib/step-cards/metrics";
@@ -458,12 +458,22 @@ function BoardView({
   title: string;
   instruction: string;
 }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const { data: allStudents } = useQuery({ ...studentsQuery(classId), enabled: !!classId });
   const stats = useMemo(() => independence(rows.map((r) => r.card)), [rows]);
   const sorted = [...rows].sort((a, b) => Number(!!b.card.help_step) - Number(!!a.card.help_step));
+  const removeFn = useServerFn(deleteLesson);
+  const remove = useMutation({
+    mutationFn: () => removeFn({ data: { lessonId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lessons", classId] });
+      navigate({ to: "/classes/$classId", params: { classId } });
+    },
+  });
   const genCards = useServerFn(generateMissingCards);
   const generate = useMutation({
     mutationFn: () => genCards({ data: { lessonId } }),
@@ -646,6 +656,38 @@ function BoardView({
           <ThenEditor lessonId={lessonId} initial={thenActivity} />
         </section>
       )}
+
+      <section className="border-t border-border pt-6">
+        <h2 className="font-display text-base font-semibold text-destructive">Delete instruction</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Permanently removes this instruction and all student cards. This cannot be undone.
+        </p>
+        {!confirmDelete ? (
+          <button
+            type="button"
+            className="btn-outline mt-3 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground text-sm"
+            onClick={() => setConfirmDelete(true)}
+          >
+            Delete instruction
+          </button>
+        ) : (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p className="text-sm font-medium">Delete <strong>{title}</strong> and all its cards?</p>
+            <button
+              type="button"
+              className="btn-primary bg-destructive hover:bg-destructive/90 text-sm"
+              disabled={remove.isPending}
+              onClick={() => remove.mutate()}
+            >
+              {remove.isPending ? "Deleting…" : "Yes, delete permanently"}
+            </button>
+            <button type="button" className="btn-ghost text-sm" onClick={() => setConfirmDelete(false)}>
+              Cancel
+            </button>
+            {remove.error && <p className="notice-error w-full">{remove.error.message}</p>}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
