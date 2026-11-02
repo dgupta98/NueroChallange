@@ -1,8 +1,10 @@
 # Step Cards — Complete Technical Build Documentation
-**Author: Dipesh | Date: Oct 31, 2026**
+**Author: Dipesh | Updated: Nov 1, 2026**
 **Audience:** Naman (AI pipeline), Manan (UI), Anand (pitch/BMC context), code reviewers (Nov 7–9)
 
 > This is the single source of truth for how the app is built. Every screen, every data shape, every API call, every state transition. If something isn't here, ask before guessing.
+
+> **⚠ This document covers v2 (production, full-stack). The original Vite-only proof-of-concept (step-cards-old/) has been removed from the repo.**
 
 ---
 
@@ -10,19 +12,27 @@
 
 | Thing | Answer |
 |---|---|
-| Framework | React + Vite |
-| Styling | Tailwind CSS |
-| Components | Radix UI (headless, ARIA-compliant) |
+| **Live URL** | **https://nuero-challange.vercel.app/** |
+| Framework | TanStack Start (React SSR) + Vite 8 |
+| Styling | Tailwind CSS v4 |
+| Components | shadcn/ui (Radix UI base, ARIA-compliant) |
 | Font | Atkinson Hyperlegible (Google Fonts) |
 | Speech input | Web Speech API (`SpeechRecognition`) |
-| Speech output | Web Speech API (`SpeechSynthesisUtterance`) |
-| AI | One API key in `.env` — check challenge-provided access first |
+| AI | Groq API — model `qwen/qwen3.8-27b` (fast, free tier) |
 | Pictograms | ARASAAC public API (free, CC BY-NC-SA, must credit) |
-| Storage | `localStorage` only — no backend, no database |
-| Deployment | Vercel or GitHub Pages (static) |
-| Browsers supported | Chrome 90+, Edge 90+ (Web Speech API requirement) |
+| Database | Supabase (PostgreSQL + Realtime + Auth) |
+| Auth | Supabase Auth — email/password + Google OAuth |
+| Deployment | Vercel (SSR function + static assets via Build Output API v3) |
+| Repo | https://github.com/dgupta98/NueroChallange |
+| Browsers supported | Chrome 90+, Edge 90+, Safari 16+ |
 
-API keys go in `.env`, which is gitignored. **Never commit keys.**
+Env vars go in `step-cards/.env.local`, which is gitignored. **Never commit keys.**
+
+### Demo access
+- **Teacher:** demo.teacher@stepcards.app / StepCards-demo-2026 → redirects to /dashboard
+- **Student Leo:** one-tap via demo panel → redirects to /student (grade 2, pictograms)
+- **Student Mia:** one-tap via demo panel → redirects to /student (grade 6, faded cards)
+- **Students Cam, Sam, Jin:** in database (no one-tap buttons) — visible in class roster
 
 ---
 

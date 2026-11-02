@@ -17,6 +17,13 @@ export const DEMO_STUDENTS = [
   { nickname: "Mia", about: "Confident reader, loves the sea and space. Her morning cards have faded to one." },
 ] as const;
 
+/** Extra classmates in the demo school — visible in class data but have no one-tap login buttons. */
+export const DEMO_CLASSMATES = [
+  { nickname: "Cam", reading_level: "grade4" as const, avatar: "rocket" as const },
+  { nickname: "Sam", reading_level: "grade2" as const, avatar: "tree" as const },
+  { nickname: "Jin", reading_level: "grade6" as const, avatar: "sun" as const },
+] as const;
+
 export type DemoStudentName = (typeof DEMO_STUDENTS)[number]["nickname"];
 
 export function isDemoStudentName(value: string): value is DemoStudentName {

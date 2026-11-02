@@ -61,8 +61,11 @@ async function main() {
     if (clsErr) throw new Error(`Class ${def.code}: ${clsErr.message}`);
 
     const { error: studErr } = await supabase.from("students").insert([
-      { class_id: cls.id, nickname: "Leo", reading_level: "grade2", avatar: "star" },
-      { class_id: cls.id, nickname: "Mia", reading_level: "grade6", avatar: "moon" },
+      { class_id: cls.id, nickname: "Leo",  reading_level: "grade2", avatar: "star" },
+      { class_id: cls.id, nickname: "Mia",  reading_level: "grade6", avatar: "moon" },
+      { class_id: cls.id, nickname: "Cam",  reading_level: "grade4", avatar: "rocket" },
+      { class_id: cls.id, nickname: "Sam",  reading_level: "grade2", avatar: "tree" },
+      { class_id: cls.id, nickname: "Jin",  reading_level: "grade6", avatar: "sun" },
     ]);
     if (studErr) throw new Error(`Students in ${def.code}: ${studErr.message}`);
     console.log("✓ Created class", def.code, "with Leo + Mia");

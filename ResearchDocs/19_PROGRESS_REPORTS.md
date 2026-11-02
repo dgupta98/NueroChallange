@@ -293,3 +293,46 @@ Every design principle from files 27–28 (externalize working memory, engineer 
 - AZACS: confirm multi-step directions are a daily challenge; confirm tablet availability; confirm non-speaking student count (pictogram-only mode priority).
 - Josh / First Place: confirm exact wording of employment stat; confirm MyClip = LifeLoop; confirm most common work instruction types residents struggle with.
 - Tech: confirm which AI API the challenge provides access to before paying for anything.
+
+---
+
+## Nov 1 — Report 9: Live App Deployment + Feature Sprint (Dipesh)
+
+**Report type:** Build sprint / deployment / feature completion
+**Submitted for:** Dipesh Gupta
+
+---
+
+**Problem description & target user**
+Autistic and ADHD students (ages 8–18) at AZACS who lose track of multi-step spoken classroom instructions due to working memory overload. Step Cards is now a fully deployed web application — not a prototype — serving three classes in a demo school with real-time card delivery, fading, sticker books, and a teacher board. AZACS is the primary partner focus for this sprint; their hands-on multi-step class model (cooking, robotics, drone building, coding) is the exact use case the product is designed around.
+
+**Solution description**
+Step Cards v2: full-stack TanStack Start (React SSR) app deployed at **https://nuero-challange.vercel.app/** with Supabase backend, Groq AI (Qwen 3.8B), and ARASAAC pictograms. The app handles the full teacher → student → completion loop with real-time updates. New this sprint: two-column auth page (sign-in left, demo panel right), Google OAuth sign-in, teacher card editing for live/finished lessons, and expanded demo school (5 students per class: Leo, Mia, Cam, Sam, Jin).
+
+**AI use**
+Groq Qwen 3.8B (`qwen/qwen3.8-27b`) via the Vercel AI SDK (`generateObject`). Three-stage pipeline:
+1. Instruction → base steps JSON (title, steps with timer_seconds and icon_keyword)
+2. Steps → per-student reading-level rewrites (grade2 / grade4 / grade6 / pictogram_only)
+3. On-demand picture search: ARASAAC symbol library queried per step keyword
+
+All AI calls use JSON schema validation (`zod`) before rendering. The `/no_think` prefix disables the model's chain-of-thought mode for faster generation.
+
+**Data use**
+Demo school only — made-up nicknames (Leo, Mia, Cam, Sam, Jin), reading levels, avatar selections. No real student data, no photos, no diagnoses. ARASAAC CC BY-NC-SA pictograms. Teacher instruction text is stored only for reuse by the same teacher. All data in Supabase (dsihyvbricqkxufhegme project, RLS enabled on all tables).
+
+**Breakthroughs**
+1. **Live deployment:** Full SSR app on Vercel at https://nuero-challange.vercel.app/ — teachers and students can use it on any device with a browser, no install. Resolved a multi-step deployment issue (ESM bundling, Vercel Build Output API v3 format, `noExternal: true` for SSR bundle self-containment).
+2. **Teacher card editing post-send:** "Change these cards" button on the live class board lets teachers edit any student's words, pictures, timer, or remove steps after cards are already in students' hands. Changes reach tablets within seconds via Supabase Realtime. Students keep their place even if steps are removed.
+3. **Google OAuth added:** Teachers can sign in with Google — no password required. Supabase handles the OAuth flow.
+4. **Two-column auth page:** Sign-in form on the left (email/Google), demo access panel on the right — reduces scrolling and makes the demo path immediately visible on wider screens.
+5. **Expanded demo school:** Five students per class (Leo, Mia + Cam, Sam, Jin) gives reviewers a realistic class size without clutter. Leo and Mia have one-tap demo access; the others are visible in class data only.
+6. **Old codebase removed from repo:** step-cards-old (the original Vite-only proof-of-concept) removed from git tracking and gitignored. The repo now contains only the production app.
+
+**Blockers**
+1. **Google OAuth requires Supabase dashboard configuration:** Google provider must be enabled in Supabase dashboard (Authentication → Providers → Google), with a Google Cloud OAuth app client ID and secret. The callback URL to register in Google Cloud Console is: `https://dsihyvbricqkxufhegme.supabase.co/auth/v1/callback`. This step is manual — one-time setup by the project owner.
+2. **Demo students (Cam, Sam, Jin) need database seeding:** The seed-demo.js script now includes them, but the live Supabase database was seeded before this change. To add them: run `SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/seed-demo.js` — or add them manually via the Supabase dashboard into the three demo classes.
+
+**Challenge partner guidance**
+AZACS is the primary focus for Step Cards. Maran at AZACS confirmed that multi-step spoken instructions are the daily challenge across all their hands-on classes — cooking, robotics, drone building, coding, dance — with approximately 1 staff member per 3 students. The daily parent journal that every AZACS family reads is a direct integration point: Step Cards' take-home print feature feeds that journal without requiring teachers to write summaries. Maran also confirmed that students can clearly recall what they were working on when given visual step support, which validates the core mechanism. Every product decision — the 1:3 staffing ratio driving the "one tap to approve, private help signal" design, the pictogram-only mode for non-speaking students, the fading algorithm to reduce scaffolding as students master routines, the parent-facing print sheet — traces directly to what we learned at AZACS. First Place AZ (Josh Munoz) confirmed the same working memory failure pattern in their employed residents, establishing that the Step Cards engine is the same tool at a different life stage: AZACS classroom → home → First Place AZ supported living → first job.
+
+---
