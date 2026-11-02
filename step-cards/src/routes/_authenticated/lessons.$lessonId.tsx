@@ -7,10 +7,10 @@ import { useEffect, useMemo, useState } from "react";
 import { StepCardView } from "@/components/cards/StepCardView";
 import { supabase } from "@/integrations/supabase/client";
 import { approveLesson, deleteLesson, findPictures, generateMissingCards } from "@/lib/lessons.functions";
-import { cardsQuery, lessonQuery, studentsQuery, type CardRow, type StudentRow } from "@/lib/queries";
+import { cardsQuery, lessonQuery, lessonsQuery, studentsQuery, type CardRow, type LessonRow, type StudentRow } from "@/lib/queries";
 import { formatCode } from "@/lib/step-cards/codes";
 import { independence } from "@/lib/step-cards/metrics";
-import { TIMER_OPTIONS, avatarGlyph, formatSeconds, type Step } from "@/lib/step-cards/types";
+import { TIMER_OPTIONS, avatarGlyph, formatSeconds, parsePartInfo, type Step } from "@/lib/step-cards/types";
 
 export const Route = createFileRoute("/_authenticated/lessons/$lessonId")({
   head: () => ({
@@ -71,6 +71,8 @@ function LessonPage() {
     .filter((r): r is { card: CardRow; student: StudentRow } => !!r.student)
     .sort((a, b) => a.student.nickname.localeCompare(b.student.nickname));
 
+  const partInfo = parsePartInfo(lesson.title);
+
   return (
     <div className="space-y-8">
       <Link to="/classes/$classId" params={{ classId }} className="btn-ghost -ml-3 text-muted-foreground">
@@ -79,9 +81,20 @@ function LessonPage() {
       <div>
         <p className="eyebrow">
           {lesson.status === "review" ? "Step 1 of 2: check the cards" : lesson.status === "live" ? "Live class board" : "Finished"}
+          {partInfo && (
+            <span className="ml-2 chip bg-primary-soft text-primary">Part {partInfo.index} of {partInfo.count}</span>
+          )}
         </p>
         <h1 className="display-lg mt-1">{lesson.title}</h1>
         <p className="mt-2 text-muted-foreground prose-width">“{lesson.instruction}”</p>
+        {partInfo && classId && (
+          <SiblingPartsNav
+            classId={classId}
+            thisLessonId={lessonId}
+            base={partInfo.base}
+            instruction={lesson.instruction}
+          />
+        )}
       </div>
 
       {lesson.status === "review" && (
@@ -189,6 +202,39 @@ function ReviewView({
         {send.error && <p className="notice-error w-full">{send.error.message}</p>}
       </div>
     </div>
+  );
+}
+
+/** Chips linking to the sibling parts of a split instruction (Part 1 of N, Part 2 of N…). */
+function SiblingPartsNav({ classId, thisLessonId, base, instruction }: { classId: string; thisLessonId: string; base: string; instruction: string }) {
+  const { data: lessons } = useQuery(lessonsQuery(classId));
+  const siblings = (lessons ?? [])
+    .map((l) => ({ lesson: l, info: parsePartInfo(l.title) }))
+    .filter((x): x is { lesson: LessonRow; info: NonNullable<ReturnType<typeof parsePartInfo>> } =>
+      !!x.info && x.info.base === base && x.lesson.instruction === instruction,
+    )
+    .sort((a, b) => a.info.index - b.info.index);
+  if (siblings.length < 2) return null;
+  return (
+    <nav aria-label="Instruction parts" className="mt-3 flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">All parts:</span>
+      {siblings.map(({ lesson, info }) => (
+        lesson.id === thisLessonId ? (
+          <span key={lesson.id} className="chip bg-primary-soft text-primary font-bold">
+            {info.index}. {info.partTitle || `Part ${info.index}`}
+          </span>
+        ) : (
+          <Link
+            key={lesson.id}
+            to="/lessons/$lessonId"
+            params={{ lessonId: lesson.id }}
+            className="chip hover:border-primary"
+          >
+            {info.index}. {info.partTitle || `Part ${info.index}`}
+          </Link>
+        )
+      ))}
+    </nav>
   );
 }
 

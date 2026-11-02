@@ -11,20 +11,31 @@ const CLASSROOM_PROMPT = `You are an assistive technology system helping a speci
 
 Break the instruction into numbered, plain-language steps a student can follow one action at a time.
 
-RULES:
-1. Each step is ONE physical action. Never combine two actions in one step.
-2. Start each step with a specific action verb: Wash, Brush, Rinse, Pour, Measure, Pick up, Put, Mix, Wait. NOT vague verbs like "Get" or "Do".
-3. Plain language: short words, simple sentences. Maximum 8 words per step.
-4. Concrete nouns only: "the soap" not "the item". "your toothbrush" not "it".
-5. Numbers as numerals: "2 cups" not "two cups".
-6. Only add a "what to do when finished" step (e.g. "Return to your seat") if the instruction implies the student has left their place and needs to return. Do NOT add it for self-contained actions.
-7. Return between 2 and 6 steps. If the instruction implies well-known sub-steps (e.g. "wash hands" implies wet → soap → scrub → rinse → dry), expand them, but never drop an action the teacher said. If expanding would go past 6 steps, expand less.
-8. Do NOT add praise, safety warnings, or steps not implied by the instruction.
-9. icon_keyword: the action of THAT step as "verb object" in 1-2 plain English words, used to find a picture in the ARASAAC symbol library (e.g. "Rinse your hands" → "rinse hands", "Coil the cable" → "cable", "Sit down at your desk" → "sit down"). Use the object alone when the verb is vague (put, get, take). Never abstract words or numbers.
-10. No idioms, metaphors or sarcasm. Active voice only.
-11. timer_seconds: only when the teacher says or clearly implies how long a step lasts (e.g. "scrub for 20 seconds", "read quietly for 5 minutes"), give that length in seconds. Otherwise null.
+Research-based cap: a routine of cards MUST be 2 to 6 steps. More than 6 cards overloads working memory for the students we serve and defeats the fading practice we rely on. If the full instruction clearly has more than 6 real actions, split it into separate ROUTINE PARTS — each part a distinct short routine of 2–6 steps that can stand on its own (e.g. "Set up station" / "Make sandwich" / "Clean up").
 
-title: short title, max 6 words, sentence case. Number steps from 1.`;
+OUTPUT (JSON ONLY):
+{
+  "title": "<overall short title, max 6 words, sentence case>",
+  "parts": [
+    { "title": "<part title, max 6 words>", "steps": [ { "n": 1, "text": "…", "icon_keyword": "…", "timer_seconds": null }, … ] },
+    …
+  ]
+}
+
+RULES:
+1. parts: 1 part for most instructions. Add more parts (up to 4) ONLY when the instruction truly spans separate stages that each have their own goal. Never split just to show off — short instructions stay as 1 part.
+2. Each part has 2 to 6 steps. Never more than 6. Steps number from 1 inside each part.
+3. Each step is ONE physical action. Never combine two actions in one step.
+4. Start each step with a specific action verb: Wash, Brush, Rinse, Pour, Measure, Pick up, Put, Mix, Wait. NOT vague verbs like "Get" or "Do".
+5. Plain language: short words, simple sentences. Maximum 8 words per step.
+6. Concrete nouns only: "the soap" not "the item". "your toothbrush" not "it".
+7. Numbers as numerals: "2 cups" not "two cups".
+8. Only add a "what to do when finished" step (e.g. "Return to your seat") if the instruction implies the student has left their place and needs to return. Do NOT add it for self-contained actions.
+9. Do NOT add praise, safety warnings, or steps not implied by the instruction.
+10. icon_keyword: the action of THAT step as "verb object" in 1-2 plain English words, used to find a picture in the ARASAAC symbol library (e.g. "Rinse your hands" → "rinse hands", "Coil the cable" → "cable", "Sit down at your desk" → "sit down"). Use the object alone when the verb is vague (put, get, take). Never abstract words or numbers.
+11. No idioms, metaphors or sarcasm. Active voice only.
+12. timer_seconds: only when the teacher says or clearly implies how long a step lasts (e.g. "scrub for 20 seconds", "read quietly for 5 minutes"), give that length in seconds. Otherwise null.
+13. Each part title names what that part accomplishes (e.g. "Measure ingredients", "Mix the dough", "Clean up"). Different from the overall title.`;
 
 const REWRITE_PROMPT = `You are an assistive technology system rewriting classroom steps for a student's reading level.
 
@@ -42,7 +53,13 @@ RULES:
 // n is optional — model sometimes omits it; we always override it from array index anyway
 const stepSchema = z.object({ n: z.number().optional(), text: z.string(), icon_keyword: z.string() });
 const baseStepSchema = stepSchema.extend({ timer_seconds: z.number().nullable().optional() });
-const baseSchema = z.object({ title: z.string(), steps: z.array(baseStepSchema) });
+const partSchema = z.object({ title: z.string(), steps: z.array(baseStepSchema) });
+const baseSchema = z.object({
+  title: z.string(),
+  // Accept either a top-level steps array (model's older shape) or a parts array
+  steps: z.array(baseStepSchema).optional(),
+  parts: z.array(partSchema).optional(),
+});
 const rewriteSchema = z.object({ steps: z.array(stepSchema) });
 
 export const createLesson = createServerFn({ method: "POST" })
@@ -65,64 +82,103 @@ export const createLesson = createServerFn({ method: "POST" })
 
     const { generateJson } = await import("./ai.server");
     const base = await generateJson(baseSchema, CLASSROOM_PROMPT, data.instruction);
-    if (!base?.steps?.length) throw new Error("Couldn't turn that into steps. Try saying it a different way.");
-    const baseSteps: Step[] = base.steps.slice(0, 6).map((s, i) => ({
-      ...s,
-      n: i + 1,
-      // Keep timers within a sensible classroom range (5 s – 30 min)
-      timer_seconds: s.timer_seconds && s.timer_seconds >= 5 ? Math.min(Math.round(s.timer_seconds), 1800) : null,
-    }));
-    const forRewrite = baseSteps.map(({ n, text, icon_keyword }) => ({ n, text, icon_keyword }));
 
-    // One rewrite per reading level in the class (confident readers get the base steps)
-    const levels = [...new Set(students.map((s) => s.reading_level as ReadingLevel))].filter((l) => l !== "grade6");
-    const [enrichedBase, ...rewriteResults] = await Promise.all([
-      enrichStepsWithPictograms(baseSteps, `${base.title} ${data.instruction}`),
-      ...levels.map((level) =>
-        generateJson(rewriteSchema, REWRITE_PROMPT, JSON.stringify({ reading_level: level, steps: forRewrite })).catch(
-          () => null,
-        ),
-      ),
-    ]);
-    const rewrites: Partial<Record<ReadingLevel, Step[]>> = {};
-    levels.forEach((level, i) => {
-      const r = rewriteResults[i];
-      if (r) rewrites[level] = r.steps.map((s, i) => ({ ...s, n: s.n ?? i + 1 }));
+    // Accept legacy single-steps shape or new parts shape. Collapse to a parts array.
+    const rawParts: { title: string; steps: typeof baseStepSchema._type[] }[] =
+      base.parts?.length
+        ? base.parts
+        : base.steps?.length
+        ? [{ title: base.title, steps: base.steps }]
+        : [];
+    if (!rawParts.length) throw new Error("Couldn't turn that into steps. Try saying it a different way.");
+
+    const partsCount = Math.min(rawParts.length, 4);
+    const parts = rawParts.slice(0, partsCount).map((p, pIdx) => {
+      const steps: Step[] = (p.steps ?? []).slice(0, 6).map((s, i) => ({
+        ...s,
+        n: i + 1,
+        timer_seconds: s.timer_seconds && s.timer_seconds >= 5 ? Math.min(Math.round(s.timer_seconds), 1800) : null,
+      }));
+      const partTitle = partsCount === 1
+        ? base.title
+        : `${base.title} · Part ${pIdx + 1} of ${partsCount}: ${p.title}`;
+      return { title: partTitle, steps };
     });
 
-    const routineKey = getRoutineKey(base.title);
-    const { data: lesson, error: lessonError } = await supabase
-      .from("lessons")
-      .insert({
-        class_id: data.classId,
-        created_by: userId,
-        title: base.title,
-        instruction: data.instruction,
-        routine_key: routineKey,
-        status: "review",
-      })
-      .select("id")
-      .single();
-    if (lessonError || !lesson) throw new Error("Couldn't save the new cards. Please try again.");
+    // One rewrite per (part × reading level); plus pictograms per part — all in parallel
+    const levels = [...new Set(students.map((s) => s.reading_level as ReadingLevel))].filter((l) => l !== "grade6");
+    const enrichedPromises = parts.map((p) =>
+      enrichStepsWithPictograms(p.steps, `${p.title} ${data.instruction}`),
+    );
+    const rewritePromises = parts.flatMap((p) =>
+      levels.map((level) =>
+        generateJson(
+          rewriteSchema,
+          REWRITE_PROMPT,
+          JSON.stringify({ reading_level: level, steps: p.steps.map(({ n, text, icon_keyword }) => ({ n, text, icon_keyword })) }),
+        ).catch(() => null),
+      ),
+    );
+    const [enrichedBases, ...rewriteFlat] = await Promise.all([Promise.all(enrichedPromises), ...rewritePromises]);
+    const rewritesPerPart: Partial<Record<ReadingLevel, Step[]>>[] = parts.map((_, pIdx) => {
+      const slice = rewriteFlat.slice(pIdx * levels.length, (pIdx + 1) * levels.length);
+      const rw: Partial<Record<ReadingLevel, Step[]>> = {};
+      levels.forEach((level, i) => {
+        const r = slice[i];
+        if (r) rw[level] = r.steps.map((s, idx) => ({ ...s, n: s.n ?? idx + 1 }));
+      });
+      return rw;
+    });
 
-    const cards = students.map((s) => ({
-      lesson_id: lesson.id,
-      class_id: data.classId,
-      student_id: s.id,
-      steps: stepsForStudent(enrichedBase, rewrites, {
-          reading_level: s.reading_level as ReadingLevel,
-          completion_history: s.completion_history,
-          fading_enabled: s.fading_enabled,
-          fading_pace: s.fading_pace,
-          help_choice: s.help_choice,
-        }, routineKey) as unknown as never,
-    }));
-    if (cards.length > 0) {
-      const { error: cardsError } = await supabase.from("lesson_cards").insert(cards);
-      if (cardsError) throw new Error("Couldn't save the new cards. Please try again.");
+    // Shared routine_key for all parts, so completion counts belong to one routine family
+    const routineKey = getRoutineKey(base.title);
+
+    const createdIds: string[] = [];
+    for (let i = 0; i < parts.length; i += 1) {
+      const part = parts[i]!;
+      const enrichedBase = enrichedBases[i]!;
+      const rewrites = rewritesPerPart[i]!;
+      const partRoutineKey = partsCount === 1 ? routineKey : `${routineKey}:p${i + 1}`;
+
+      const { data: lesson, error: lessonError } = await supabase
+        .from("lessons")
+        .insert({
+          class_id: data.classId,
+          created_by: userId,
+          title: part.title,
+          instruction: data.instruction,
+          routine_key: partRoutineKey,
+          status: "review",
+        })
+        .select("id")
+        .single();
+      if (lessonError || !lesson) throw new Error("Couldn't save the new cards. Please try again.");
+      createdIds.push(lesson.id);
+
+      const cards = students.map((s) => ({
+        lesson_id: lesson.id,
+        class_id: data.classId,
+        student_id: s.id,
+        steps: stepsForStudent(enrichedBase, rewrites, {
+            reading_level: s.reading_level as ReadingLevel,
+            completion_history: s.completion_history,
+            fading_enabled: s.fading_enabled,
+            fading_pace: s.fading_pace,
+            help_choice: s.help_choice,
+          }, partRoutineKey) as unknown as never,
+      }));
+      if (cards.length > 0) {
+        const { error: cardsError } = await supabase.from("lesson_cards").insert(cards);
+        if (cardsError) throw new Error("Couldn't save the new cards. Please try again.");
+      }
     }
 
-    return { lessonId: lesson.id, previewSteps: enrichedBase };
+    return {
+      lessonId: createdIds[0]!,
+      previewSteps: enrichedBases[0]!,
+      partCount: parts.length,
+      partIds: createdIds,
+    };
   });
 
 /** Make a lesson live for students. Ends any other live lesson in the same class. */
@@ -220,8 +276,9 @@ export const generateMissingCards = createServerFn({ method: "POST" })
     } else {
       const { generateJson } = await import("./ai.server");
       const base = await generateJson(baseSchema, CLASSROOM_PROMPT, lesson.instruction);
-      if (!base?.steps?.length) throw new Error("Couldn't regenerate the steps. Try again.");
-      const raw: Step[] = base.steps.slice(0, 6).map((s, i) => ({
+      const steps = base.steps?.length ? base.steps : base.parts?.[0]?.steps;
+      if (!steps?.length) throw new Error("Couldn't regenerate the steps. Try again.");
+      const raw: Step[] = steps.slice(0, 6).map((s, i) => ({
         ...s,
         n: i + 1,
         timer_seconds: s.timer_seconds && s.timer_seconds >= 5 ? Math.min(Math.round(s.timer_seconds), 1800) : null,

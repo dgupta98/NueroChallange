@@ -99,3 +99,17 @@ export const cardsQuery = (lessonId: string) =>
       return (data ?? []) as unknown as CardRow[];
     },
   });
+
+/** All cards for this class (across all lessons). Used for the students-page overview. */
+export const classCardsQuery = (classId: string) =>
+  queryOptions({
+    queryKey: ["class-cards", classId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lesson_cards")
+        .select("id, lesson_id, student_id, current_step, completed_at, sticker_id, help_count, steps")
+        .eq("class_id", classId);
+      fail(error);
+      return (data ?? []) as unknown as Pick<CardRow, "id" | "lesson_id" | "student_id" | "current_step" | "completed_at" | "sticker_id" | "help_count" | "steps">[];
+    },
+  });

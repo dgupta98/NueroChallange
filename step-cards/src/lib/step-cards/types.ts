@@ -62,3 +62,10 @@ export const AVATARS = [
 export function avatarGlyph(value: string) {
   return AVATARS.find((a) => a.value === value)?.glyph ?? "●";
 }
+
+/** Parse "<base> · Part k of N: …" out of a lesson title. Returns null for single-part lessons. */
+export function parsePartInfo(title: string): { base: string; index: number; count: number; partTitle: string } | null {
+  const m = title.match(/^(.*?)\s·\sPart\s(\d+)\sof\s(\d+)(?::\s(.*))?$/);
+  if (!m) return null;
+  return { base: m[1]!, index: Number(m[2]), count: Number(m[3]), partTitle: m[4] ?? "" };
+}

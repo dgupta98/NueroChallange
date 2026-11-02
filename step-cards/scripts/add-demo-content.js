@@ -34,6 +34,18 @@ async function fetchPictogramId(keyword) {
 
 const pictoUrl = (id) => id ? `${ARASAAC}/pictograms/${id}?color=true` : null;
 
+// Sticker IDs that match src/lib/step-cards/stickers.ts — picked per student per
+// finished lesson so the demo sticker book has variety instead of being empty.
+const DEMO_STICKERS = [
+  "trains-passenger-train", "trains-bullet-train", "trains-tram",
+  "dinosaurs-t-rex", "dinosaurs-triceratops", "dinosaurs-brachiosaurus",
+  "sea-whale", "sea-dolphin", "sea-octopus",
+  "space-rocket", "space-astronaut", "space-planet",
+  "wild-lion", "wild-elephant", "wild-giraffe",
+  "pets-dog", "pets-cat", "pets-rabbit",
+];
+function pickSticker(seed) { return DEMO_STICKERS[Math.abs(seed) % DEMO_STICKERS.length]; }
+
 async function enrichSteps(stepList) {
   const ids = await Promise.all(stepList.map((s) => fetchPictogramId(s.icon_keyword)));
   return stepList.map((s, i) => ({
@@ -312,10 +324,18 @@ async function addLessons(classDef, teacherId) {
     const bp = BLUEPRINTS[lessonDef.key];
     if (!bp) { console.log(`  ✗ No blueprint for ${lessonDef.key}`); continue; }
 
-    // If lesson already exists, patch its cards with pictogramUrls if missing
+    // If lesson already exists, patch its cards with pictogramUrls / sticker_id if missing
     const { data: existing } = await db.from("lessons").select("id").eq("class_id", cls.id).eq("title", bp.title).maybeSingle();
     if (existing) {
-      const { data: existingCards } = await db.from("lesson_cards").select("id, steps, student_id").eq("lesson_id", existing.id);
+      const { data: existingCards } = await db.from("lesson_cards").select("id, steps, student_id, completed_at, sticker_id").eq("lesson_id", existing.id);
+      // Backfill sticker_id on finished cards so demo sticker books aren't empty
+      for (const card of existingCards ?? []) {
+        if (card.completed_at && !card.sticker_id) {
+          const idx = students.findIndex((s) => s.id === card.student_id);
+          const stickerId = pickSticker((Math.max(0, idx) * 7 + lessonDef.daysAgo * 11 + bp.title.length) | 0);
+          await db.from("lesson_cards").update({ sticker_id: stickerId }).eq("id", card.id);
+        }
+      }
       const needsPatch = existingCards?.some((c) => Array.isArray(c.steps) && c.steps[0] && !c.steps[0].pictogramUrl);
       if (needsPatch) {
         console.log(`  ↻ Patching pictograms for ${classDef.code}/${bp.title}…`);
@@ -408,6 +428,13 @@ async function addLessons(classDef, teacherId) {
         if (idx % 2 === 0) feeling = idx === 0 ? "happy" : "calm";
       }
 
+      // Finished cards get a sticker so the demo sticker book is populated;
+      // the sticker a student "chose" is deterministic per (student, lesson) pair.
+      const stickerId = completedAt
+        ? pickSticker((idx * 7 + lessonDef.daysAgo * 11 + bp.title.length) | 0)
+        : null;
+      const feelingAt = feeling ? daysAgoISO(lessonDef.daysAgo, 450 + idx * 60) : null;
+
       return {
         lesson_id: lesson.id,
         class_id: cls.id,
@@ -418,6 +445,8 @@ async function addLessons(classDef, teacherId) {
         help_count: helpCount,
         help_step: helpStep,
         feeling: feeling,
+        feeling_at: feelingAt,
+        sticker_id: stickerId,
         updated_at: daysAgoISO(lessonDef.daysAgo, 300 + idx * 60),
       };
     });
