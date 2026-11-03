@@ -14,3 +14,29 @@ For Presenters/
 # macOS
 .DS_Store
 step-cards-old/
+
+# Env files (never commit real secrets)
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Stray screenshots and random downloads at repo root
+Screenshot*.png
+*.jpeg
+*.jpg
+!_For Presenters/**/*.jpeg
+!_For Presenters/**/*.jpg
+!step-cards/public/**/*.jpeg
+!step-cards/public/**/*.jpg
+
+# Local tool/MCP configs
+.agents/
+.claude/
+.mcp.json
+project.json
+skills-lock.json
+client_secret_*.json
+*.txt
+!step-cards/**/*.txt
+!ResearchDocs/**/*.txt

@@ -2,6 +2,8 @@
 
 **Team Kaleidoscope | ASU Scottsdale Launchpad | Nov 6, 2026**
 
+**🔗 Live app:** https://nuero-challange.vercel.app/
+
 A web app that turns any spoken classroom instruction into personalized picture step cards for autistic and ADHD students — in real time, without setup. Support fades automatically as students master each routine. The same engine serves neurodivergent adults in first employment through a work mode that breaks manager instructions into plain steps and flags ambiguous terms.
 
 ---
@@ -49,12 +51,12 @@ Implements 4 of the 28 verified evidence-based practices from the [NCAEP 2020 re
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18 + Vite + Tailwind CSS + Radix UI |
+| Frontend | React 18 + TanStack Start (SSR) + Tailwind CSS + Radix UI |
 | LLM | Groq API — `qwen/qwen3.8-27b` with `/no_think` (fast, free tier) |
 | Pictograms | [ARASAAC](https://arasaac.org) REST API — 35,000+ CC BY-NC-SA symbols |
 | Speech input | Web Speech API (Chrome/Edge, browser built-in, free) |
-| Storage | localStorage only — no backend, no student data off-device |
-| Hosting | Vercel (static frontend + serverless API proxy) |
+| Backend | Supabase — Postgres + Auth (magic link) + Realtime + Row-Level Security |
+| Hosting | Vercel (TanStack Start SSR + serverless functions) |
 
 ---
 
@@ -91,17 +93,28 @@ NorthAmericaChallange/
 
 ## Local setup
 
-**Requirements:** Node 18+, Chrome or Edge (for speech input)
+**Requirements:** Node 18+, Chrome or Edge (for speech input), a free Supabase project, a free Groq API key.
 
 ```bash
 cd step-cards
 npm install
 
-# Create .env.local with your Groq API key (free at console.groq.com)
-echo "VITE_GROQ_API_KEY=your_key_here" > .env.local
+# Create .env.local — see step-cards/.env.example for the full list
+cat > .env.local <<EOF
+GROQ_API_KEY=your_groq_key_here
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+SUPABASE_PROJECT_ID=<project-ref>
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+VITE_SUPABASE_PROJECT_ID=<project-ref>
+EOF
+
+# Apply schema + demo seed to your Supabase project
+# (schema.sql and seed-demo.js live at the repo root)
 
 npm run dev
-# → http://localhost:5173
+# → http://localhost:3000
 ```
 
 ---
@@ -119,12 +132,12 @@ npm run dev
 
 ## Privacy and safety
 
-- No student names, photos, or diagnoses are ever stored or sent to any API
-- Demo student profiles use nicknames only (Leo, Sam, Alex)
-- All student progress data is localStorage only — it never leaves the device
-- Speech recognition runs in the browser via the Web Speech API — audio is not recorded
-- Teacher approval is required before any card reaches a student screen
-- COPPA compliant by design: no accounts, no data collection, no backend
+- No real student names, photos, or diagnoses are stored anywhere. Demo profiles use nicknames only (Alex, River, Mel, Kai, Fen).
+- Student progress lives in Supabase Postgres behind **Row-Level Security**: a teacher only sees their own classes; a student token only sees that student's own cards.
+- LLM calls carry **only** the instruction text — never a student name, email, or profile.
+- Speech recognition runs in the browser via the Web Speech API — audio is not recorded or persisted.
+- Teacher approval is required before any card reaches a student screen.
+- `service_role` keys are server-side only. Browser code uses the Supabase publishable (anon) key, which is RLS-protected.
 
 ---
 
