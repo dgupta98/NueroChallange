@@ -16,8 +16,8 @@
 | Launchpad | — ASU Scottsdale Launchpad | [ ] |
 | Project URL (live app) | — https://nuero-challange.vercel.app/ | [ ] |
 | GitHub repo | — https://github.com/dgupta98/NueroChallange | [ ] |
-| Pitch deck (Google Slides) | — Export `_For Presenters/Presentation/Step_Cards_Final.pptx` to Google Slides, share "Anyone with link can view" | [ ] |
-| BMC PDF | — Anand fills `_For Presenters/Business Model Canvas/NA AI CHALLENGE_BMC_Fillable.pdf` from `43_BUSINESS_MODEL_CANVAS.md` | [ ] |
+| Pitch deck (Google Slides) | — `_For Presenters/Presentation/Step_Cards_Deck.pptx` (team-updated Nov 2). Upload to Google Slides, share "Anyone with link can view" | [x] built — [ ] uploaded |
+| BMC PDF | — `_For Presenters/Business Model Canvas/BMC_Step_Cards_Filled.pdf` (generated via Gemini 2.5 Flash Image using `ResearchDocs/50_GEMINI_BMC_PROMPT.md`) | [x] |
 | AI prompts PDF | — Export `ResearchDocs/47_AI_PROMPTS_FOR_PDF.md` to PDF | [ ] |
 | Written responses | — `ResearchDocs/45_SUBMISSION_FORM_RESPONSES.md` — paste each of the 10 fields into the matching Airtable textarea | [ ] |
 | Presenter availability | — Confirm with team by Nov 4 EOD | [ ] |
@@ -27,7 +27,8 @@
 ## DELIVERABLE CHECKS
 
 ### 1. 5-slide pitch deck
-- [ ] Deck uses `REQUIRED - NA AI Challenge 5 Slide Template (Final).pptx` as the base
+- Working file: `_For Presenters/Presentation/Step_Cards_Deck.pptx` (built Nov 2 from the required template, team-updated after; see `ResearchDocs/50_GEMINI_BMC_PROMPT.md` §5 for image-insert instructions)
+- [x] Deck uses `REQUIRED - NA AI Challenge 5 Slide Template (Final).pptx` as the base
 - [ ] Did NOT change font size, font color, or slide layout (per template rules)
 - [ ] Slide 1 title: "Step Cards"
 - [ ] Slide 1 team: Manan Batra · Naman Dewan · Dipesh Gupta · Anand Kumar (alphabetical)
@@ -51,10 +52,11 @@
 - [ ] Lighthouse accessibility score ≥ 90
 
 ### 3. Business Model Canvas (PDF)
-- [ ] Anand filled all 9 cells of `NA AI CHALLENGE_BMC_Fillable.pdf` from `43_BUSINESS_MODEL_CANVAS.md`
-- [ ] Used the Strategyzer template provided — NOT a custom BMC
-- [ ] All 9 cells have content
-- [ ] File saved as `Step_Cards_BMC.pdf`
+- Working file: `_For Presenters/Business Model Canvas/BMC_Step_Cards_Filled.pdf` (plus `.jpeg` source)
+- [x] Generated via Gemini 2.5 Flash Image ("Nano Banana") using the prompt in `ResearchDocs/50_GEMINI_BMC_PROMPT.md`
+- [x] Used the Strategyzer template provided (via `BMC_Blank.png` converted from `NA AI CHALLENGE_BMC_Blank.pdf`) — NOT a custom BMC
+- [x] All 9 cells have content, verbatim from `43_BUSINESS_MODEL_CANVAS.md`
+- [x] File saved as `BMC_Step_Cards_Filled.pdf` (exported from `.jpeg` via `sips`)
 - [ ] Uploaded to Airtable or shared via public Drive link
 
 ### 4. GitHub repo
