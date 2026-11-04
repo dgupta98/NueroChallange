@@ -23,19 +23,6 @@ export const profileQuery = (userId: string) =>
     },
   });
 
-export const membershipsQuery = (userId: string) =>
-  queryOptions({
-    queryKey: ["memberships", userId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-          .from("organization_members")
-          .select("org_id, role, organizations(id, name, invite_code)")
-          .eq("user_id", userId);
-      fail(error);
-      return data;
-    },
-  });
-
 export const myClassesQuery = (userId: string) =>
   queryOptions({
     queryKey: ["classes", "mine", userId],

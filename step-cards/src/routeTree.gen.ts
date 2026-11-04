@@ -18,7 +18,6 @@ import { Route as ImpactRouteImport } from './routes/impact'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as ResearchRouteImport } from './routes/research'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedOrganizationRouteImport } from './routes/_authenticated/organization'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as StudentSpaceIdRouteImport } from './routes/student.$spaceId'
 import { Route as AuthenticatedClassesClassIdRouteImport } from './routes/_authenticated/classes.$classId'
@@ -70,12 +69,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOrganizationRoute =
-  AuthenticatedOrganizationRouteImport.update({
-    id: '/organization',
-    path: '/organization',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const StudentIndexRoute = StudentIndexRouteImport.update({
   id: '/student/',
   path: '/student/',
@@ -120,7 +113,6 @@ export interface FileRoutesByFullPath {
   '/join': typeof JoinRoute
   '/research': typeof ResearchRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/organization': typeof AuthenticatedOrganizationRoute
   '/student/$spaceId': typeof StudentSpaceIdRoute
   '/student/': typeof StudentIndexRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
@@ -137,7 +129,6 @@ export interface FileRoutesByTo {
   '/join': typeof JoinRoute
   '/research': typeof ResearchRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/organization': typeof AuthenticatedOrganizationRoute
   '/student/$spaceId': typeof StudentSpaceIdRoute
   '/student': typeof StudentIndexRoute
   '/classes/$classId': typeof AuthenticatedClassesClassIdRoute
@@ -156,7 +147,6 @@ export interface FileRoutesById {
   '/join': typeof JoinRoute
   '/research': typeof ResearchRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/organization': typeof AuthenticatedOrganizationRoute
   '/student/$spaceId': typeof StudentSpaceIdRoute
   '/student/': typeof StudentIndexRoute
   '/_authenticated/classes/$classId': typeof AuthenticatedClassesClassIdRoute
@@ -175,7 +165,6 @@ export interface FileRouteTypes {
     | '/join'
     | '/research'
     | '/dashboard'
-    | '/organization'
     | '/student/$spaceId'
     | '/student/'
     | '/classes/$classId'
@@ -192,7 +181,6 @@ export interface FileRouteTypes {
     | '/join'
     | '/research'
     | '/dashboard'
-    | '/organization'
     | '/student/$spaceId'
     | '/student'
     | '/classes/$classId'
@@ -210,7 +198,6 @@ export interface FileRouteTypes {
     | '/join'
     | '/research'
     | '/_authenticated/dashboard'
-    | '/_authenticated/organization'
     | '/student/$spaceId'
     | '/student/'
     | '/_authenticated/classes/$classId'
@@ -297,13 +284,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/organization': {
-      id: '/_authenticated/organization'
-      path: '/organization'
-      fullPath: '/organization'
-      preLoaderRoute: typeof AuthenticatedOrganizationRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/student/': {
       id: '/student/'
       path: '/student'
@@ -351,7 +331,6 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedOrganizationRoute: typeof AuthenticatedOrganizationRoute
   AuthenticatedClassesClassIdRoute: typeof AuthenticatedClassesClassIdRoute
   AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
   AuthenticatedClassesClassIdStudentsRoute: typeof AuthenticatedClassesClassIdStudentsRoute
@@ -360,7 +339,6 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedOrganizationRoute: AuthenticatedOrganizationRoute,
   AuthenticatedClassesClassIdRoute: AuthenticatedClassesClassIdRoute,
   AuthenticatedLessonsLessonIdRoute: AuthenticatedLessonsLessonIdRoute,
   AuthenticatedClassesClassIdStudentsRoute:

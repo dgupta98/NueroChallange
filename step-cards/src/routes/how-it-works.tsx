@@ -5,13 +5,13 @@ import { PublicLayout } from "@/components/site/PublicLayout";
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How Step Cards works — teachers, students and organizations" },
+      { title: "How Step Cards works — teachers and students" },
       {
         name: "description",
-        content: "Step-by-step workflows for teachers, students and organization admins using Step Cards in the classroom.",
+        content: "Step-by-step workflows for teachers and students using Step Cards in the classroom.",
       },
       { property: "og:title", content: "How Step Cards works" },
-      { property: "og:description", content: "The teacher, student and organization workflows behind Step Cards." },
+      { property: "og:description", content: "The teacher and student workflows behind Step Cards." },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -46,17 +46,6 @@ const FLOWS = [
       ["Finish", "A quiet \u201cAll done\u201d screen. No fireworks, no noise."],
     ],
   },
-  {
-    id: "organizations",
-    title: "For organizations",
-    intro: "For a school or program that wants every teacher on the same page.",
-    steps: [
-      ["Create your organization", "You become its admin and get an invite code."],
-      ["Invite teachers", "Teachers create their account and enter your invite code."],
-      ["See the whole picture", "Classes, teachers and recent activity in one place."],
-      ["Measure independence", "Track how many steps students complete without asking for help — the pilot metric our partners asked for."],
-    ],
-  },
 ];
 
 function HowItWorks() {
@@ -65,9 +54,9 @@ function HowItWorks() {
       <section className="hero-wash">
         <div className="container-narrow py-16 lg:py-20">
           <p className="eyebrow">How it works</p>
-          <h1 className="display-xl mt-3">Three workflows, one calm system</h1>
+          <h1 className="display-xl mt-3">Two workflows, one calm system</h1>
           <p className="lead mt-5">
-            The teacher stays in control, students see only what they need, and organizations can see what's working.
+            The teacher stays in control, and students see only what they need.
           </p>
           <nav aria-label="On this page" className="mt-8 flex flex-wrap gap-2">
             {FLOWS.map((f) => (

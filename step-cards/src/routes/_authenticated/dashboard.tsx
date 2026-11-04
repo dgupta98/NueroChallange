@@ -1,12 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { useState, type FormEvent } from "react";
 
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { joinOrganization } from "@/lib/org.functions";
-import { membershipsQuery, myClassesQuery, profileQuery } from "@/lib/queries";
+import { myClassesQuery, profileQuery } from "@/lib/queries";
 import { formatCode } from "@/lib/step-cards/codes";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -27,23 +25,15 @@ function Dashboard() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
   const { data: profile } = useQuery({ ...profileQuery(userId), enabled: !!userId });
-  const { data: memberships, isLoading: loadingOrgs } = useQuery({ ...membershipsQuery(userId), enabled: !!userId });
   const { data: classes, isLoading } = useQuery({ ...myClassesQuery(userId), enabled: !!userId });
-  const adminOrg = memberships?.find((m) => m.role === "admin")?.organizations;
-  const anyOrg = memberships?.[0]?.organizations;
 
   return (
     <div className="space-y-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">{anyOrg ? anyOrg.name : "Your workspace"}</p>
+          <p className="eyebrow">Your workspace</p>
           <h1 className="display-lg mt-1">Hello{profile?.display_name ? `, ${profile.display_name}` : ""}</h1>
         </div>
-        {adminOrg && (
-          <Link to="/organization" className="btn-outline">
-            View organization overview
-          </Link>
-        )}
       </div>
 
       <section aria-labelledby="classes-heading">
@@ -84,16 +74,15 @@ function Dashboard() {
               </Link>
             );
           })}
-          <NewClassCard orgId={anyOrg?.id ?? null} userId={userId} />
+          <NewClassCard userId={userId} />
         </div>
       </section>
 
-      {!loadingOrgs && !memberships?.length && <OrganizationSetup userId={userId} />}
     </div>
   );
 }
 
-function NewClassCard({ orgId, userId }: { orgId: string | null; userId: string }) {
+function NewClassCard({ userId }: { userId: string }) {
   const [name, setName] = useState("");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -101,7 +90,7 @@ function NewClassCard({ orgId, userId }: { orgId: string | null; userId: string 
     mutationFn: async () => {
       const { data, error } = await supabase
         .from("classes")
-        .insert({ name: name.trim(), teacher_id: userId, org_id: orgId })
+        .insert({ name: name.trim(), teacher_id: userId })
         .select("id")
         .single();
       if (error) throw new Error(error.message);
@@ -138,61 +127,3 @@ function NewClassCard({ orgId, userId }: { orgId: string | null; userId: string 
   );
 }
 
-function OrganizationSetup({ userId }: { userId: string }) {
-  const queryClient = useQueryClient();
-  const join = useServerFn(joinOrganization);
-  const [code, setCode] = useState("");
-  const [orgName, setOrgName] = useState("");
-
-  const joinMutation = useMutation({
-    mutationFn: () => join({ data: { code } }),
-    onSuccess: () => queryClient.invalidateQueries(),
-  });
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("organizations").insert({ name: orgName.trim(), created_by: userId });
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => queryClient.invalidateQueries(),
-  });
-
-  return (
-    <section aria-labelledby="org-heading" className="surface-quiet p-6 sm:p-8">
-      <h2 id="org-heading" className="font-display text-2xl font-semibold">Part of a school or program?</h2>
-      <p className="mt-2 text-muted-foreground prose-width">
-        Joining an organization lets your admin support you. You can also keep working on your own — this is optional.
-      </p>
-      <div className="mt-6 grid gap-5 md:grid-cols-2">
-        <form
-          className="flex flex-col gap-3 rounded-xl bg-card p-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            joinMutation.mutate();
-          }}
-        >
-          <label htmlFor="invite" className="font-semibold">I have an invite code</label>
-          <input id="invite" className="field font-display tracking-widest uppercase" value={code} onChange={(e) => setCode(e.target.value)} maxLength={8} placeholder="ABC 234" />
-          {joinMutation.error && <p className="notice-error">{joinMutation.error.message}</p>}
-          <button className="btn-primary" disabled={code.trim().length < 6 || joinMutation.isPending}>
-            {joinMutation.isPending ? "Joining…" : "Join organization"}
-          </button>
-        </form>
-        <form
-          className="flex flex-col gap-3 rounded-xl bg-card p-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            createMutation.mutate();
-          }}
-        >
-          <label htmlFor="org-name" className="font-semibold">Set up my organization</label>
-          <input id="org-name" className="field" value={orgName} onChange={(e) => setOrgName(e.target.value)} maxLength={120} placeholder="For example: Desert Sky School" />
-          {createMutation.error && <p className="notice-error">{createMutation.error.message}</p>}
-          <button className="btn-outline" disabled={orgName.trim().length < 2 || createMutation.isPending}>
-            {createMutation.isPending ? "Creating…" : "Create organization"}
-          </button>
-          <p className="text-sm text-muted-foreground">You'll become its admin and get a code to invite teachers.</p>
-        </form>
-      </div>
-    </section>
-  );
-}

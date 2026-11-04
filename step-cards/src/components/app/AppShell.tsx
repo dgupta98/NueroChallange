@@ -6,7 +6,7 @@ import { Logo } from "@/components/brand/Logo";
 import { DisplayControls } from "@/components/DisplayControls";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import { membershipsQuery, profileQuery } from "@/lib/queries";
+import { profileQuery } from "@/lib/queries";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -15,8 +15,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [displayOpen, setDisplayOpen] = useState(false);
   const userId = user?.id ?? "";
   const { data: profile } = useQuery({ ...profileQuery(userId), enabled: !!userId });
-  const { data: memberships } = useQuery({ ...membershipsQuery(userId), enabled: !!userId });
-  const isAdmin = memberships?.some((m) => m.role === "admin");
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -38,11 +36,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link to="/dashboard" className="btn-ghost text-muted-foreground" activeProps={{ className: "btn-ghost bg-secondary text-foreground" }}>
                 My classes
               </Link>
-              {isAdmin && (
-                <Link to="/organization" className="btn-ghost text-muted-foreground" activeProps={{ className: "btn-ghost bg-secondary text-foreground" }}>
-                  Organization
-                </Link>
-              )}
             </nav>
           </div>
           <div className="flex items-center gap-2">

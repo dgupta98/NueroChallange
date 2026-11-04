@@ -20,7 +20,6 @@ export type Database = {
           id: string
           join_code: string
           name: string
-          org_id: string | null
           teacher_id: string
         }
         Insert: {
@@ -28,7 +27,6 @@ export type Database = {
           id?: string
           join_code?: string
           name: string
-          org_id?: string | null
           teacher_id: string
         }
         Update: {
@@ -36,18 +34,9 @@ export type Database = {
           id?: string
           join_code?: string
           name?: string
-          org_id?: string | null
           teacher_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "classes_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       lesson_cards: {
         Row: {
@@ -184,62 +173,6 @@ export type Database = {
           },
         ]
       }
-      organization_members: {
-        Row: {
-          created_at: string
-          id: string
-          org_id: string
-          role: Database["public"]["Enums"]["org_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          org_id: string
-          role?: Database["public"]["Enums"]["org_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          org_id?: string
-          role?: Database["public"]["Enums"]["org_role"]
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "organization_members_org_id_fkey"
-            columns: ["org_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      organizations: {
-        Row: {
-          created_at: string
-          created_by: string
-          id: string
-          invite_code: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          created_by: string
-          id?: string
-          invite_code?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string
-          id?: string
-          invite_code?: string
-          name?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string
@@ -363,18 +296,9 @@ export type Database = {
         Returns: boolean
       }
       gen_join_code: { Args: never; Returns: string }
-      is_org_admin: {
-        Args: { _org_id: string; _user_id: string }
-        Returns: boolean
-      }
-      is_org_member: {
-        Args: { _org_id: string; _user_id: string }
-        Returns: boolean
-      }
     }
     Enums: {
       lesson_status: "review" | "live" | "ended"
-      org_role: "admin" | "teacher"
       reading_level: "grade2" | "grade4" | "grade6" | "pictogram_only"
     }
     CompositeTypes: {
@@ -504,7 +428,6 @@ export const Constants = {
   public: {
     Enums: {
       lesson_status: ["review", "live", "ended"],
-      org_role: ["admin", "teacher"],
       reading_level: ["grade2", "grade4", "grade6", "pictogram_only"],
     },
   },
