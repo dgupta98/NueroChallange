@@ -337,6 +337,48 @@ AZACS is the primary focus for Step Cards. Maran at AZACS confirmed that multi-s
 
 ---
 
+## Nov 3 — Report 11: Submission Artifact Finalization + Codebase Cleanup (Dipesh)
+
+**Report type:** Submission prep / codebase cleanup
+**Submitted for:** Dipesh Gupta
+
+---
+
+**Problem description & target user**
+Same users as previous reports. This session focused entirely on submission-readiness: producing the required artifacts, hardening the repository, and removing scope creep features before the Nov 5 deadline. No new user-facing features were added — this was the cleanup and lock-down pass.
+
+**Solution description**
+Five areas closed today:
+
+1. **Submission artifacts completed**: all required Airtable upload files are now produced and in the right folders — `BMC_Step_Cards_Filled.pdf` (generated via Gemini 2.5 Flash Image from the Strategyzer template), `Step_Cards_AI_Prompts.pdf` (6-page export of `47_AI_PROMPTS_FOR_PDF.md`), `Step_Cards_Deck.pptx` (team-updated slide deck built off the official 5-slide template), and `team_photo_generated.jpeg` (photoreal team composite from LinkedIn headshots, generated via Gemini, saved in `_For Presenters/Team/`).
+
+2. **Secrets sweep**: `step-cards/.env` was tracked in git (committed in the Nov 1 TanStack migration). File contained only the Supabase publishable (anon) key — no Groq key, no `service_role` — so no live credential was exposed. Untracked via `git rm --cached`, added `.env` and `.env.*` patterns to both root and `step-cards/.gitignore`. Created `step-cards/.env.example` documenting all required environment variables for judges and future developers. Full codebase grep confirmed zero remaining `gsk_*`, `sk-*`, or raw JWT tokens in tracked files.
+
+3. **README updated**: added the live app URL (`https://nuero-challange.vercel.app/`) at the top, updated the tech stack from the stale Vite + localStorage description to TanStack Start SSR + Supabase, corrected the privacy section to describe Supabase RLS (not "localStorage only"), and updated the local setup section with the correct Supabase + Groq environment variables.
+
+4. **Organization feature removed**: the multi-teacher organization feature (org admin role, invite codes, `organizations` / `organization_members` tables, `/organization` route, dashboard `OrganizationSetup` component, AppShell nav link) was out of scope for the MVP and was never validated with a partner. Removed entirely — 436 lines deleted across 8 files, zero remaining org references in `src/`.
+
+5. **Supporting research docs**: added `50_GEMINI_BMC_PROMPT.md` (fully documented prompt for Gemini to fill the BMC image, including error-recovery replies, file naming, and slide insertion instructions), and updated `48_SUBMISSION_READY_CHECKLIST.md` to mark BMC and pitch deck as complete with their actual file paths.
+
+**AI use**
+Gemini 2.5 Flash Image ("Nano Banana") used to: (a) fill the Business Model Canvas image from the Strategyzer template + 9-cell content, (b) generate the photoreal team composite photo from four LinkedIn headshots. Both outputs validated before saving.
+
+**Data use**
+No student data involved in this session. BMC content sourced from `43_BUSINESS_MODEL_CANVAS.md`. AI prompts PDF sourced from `47_AI_PROMPTS_FOR_PDF.md`. Team photo used only publicly posted LinkedIn profile images.
+
+**Breakthroughs**
+1. **Submission-ready state reached**: every required Airtable field now has a source file or is already drafted in `45_SUBMISSION_FORM_RESPONSES.md`. The only remaining steps are browser-side: uploading files to Airtable, pasting written responses, and verifying share links from incognito.
+2. **Org feature removal was clean**: the organization tables were wired through RLS, the route tree, dashboard, AppShell nav, and types — but none of the core teacher/student flows touched them. Removal was zero-risk to the demo path.
+3. **Git history is clean**: `step-cards/.env` removed from tracking; `.gitignore` now comprehensive; `step-cards/.env.example` documents the setup for the code review panel (Nov 7–9).
+
+**Blockers**
+None. App is deployed and stable. All submission artifacts are produced. Final steps before 11:59 PM MT Nov 5 are non-technical: Airtable form fill, PDF uploads, Google Slides share link, and git tag `submission-nov5`.
+
+**Challenge partner guidance**
+No new partner contact today. Submission is Nov 5 at 11:59 PM MT; live pitch at ASU Scottsdale Launchpad (SkySong) is Nov 6.
+
+---
+
 ## Nov 2 — Report 10: Long-Instruction Splitting + Student Progress View (Dipesh)
 
 **Report type:** Build sprint / rubric-driven feature pass
