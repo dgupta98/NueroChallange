@@ -78,6 +78,7 @@ function Space({ space, onTheme }: { space: StudentSpace; onTheme: (t: string) =
   const [showAll, setShowAll] = useState(false);
   const theme = findCategory(space.stickerTheme).id;
   const [changingSticker, setChangingSticker] = useState(false);
+  const [replayStep, setReplayStep] = useState<number | null>(null);
   const since = useMemo(localMidnightIso, []);
 
   const stateKey = ["student-state", space.token];
@@ -274,7 +275,7 @@ function Space({ space, onTheme }: { space: StudentSpace; onTheme: (t: string) =
               </div>
             )}
 
-            {card && card.completed && (
+            {card && card.completed && replayStep === null && (
               <div className="text-center">
                 {latestSticker ? (
                   <div className="mx-auto mb-6 flex w-fit flex-col items-center gap-2 rounded-2xl bg-success-soft p-4">
@@ -305,7 +306,81 @@ function Space({ space, onTheme }: { space: StudentSpace; onTheme: (t: string) =
                   <button type="button" className="btn-outline btn-lg" onClick={() => setTab("stickers")}>
                     See my stickers
                   </button>
+                  <button type="button" className="btn-outline btn-lg" onClick={() => setReplayStep(0)}>
+                    <span aria-hidden="true">↺</span> Replay steps
+                  </button>
                 </div>
+              </div>
+            )}
+
+            {card && card.completed && replayStep !== null && card.steps[replayStep] && (
+              <div className="space-y-5">
+                <div className="rounded-xl border border-primary/30 bg-primary-soft px-4 py-2 text-center text-sm font-medium text-primary">
+                  Reviewing — {data.lesson?.title}
+                </div>
+                <div>
+                  <div
+                    className="mx-auto mt-1 flex max-w-sm gap-1.5"
+                    role="progressbar"
+                    aria-valuenow={replayStep + 1}
+                    aria-valuemin={1}
+                    aria-valuemax={card.steps.length}
+                    aria-label={`Step ${replayStep + 1} of ${card.steps.length}`}
+                  >
+                    {card.steps.map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-2.5 flex-1 rounded-full ${i < replayStep ? "bg-success" : i === replayStep ? "bg-primary" : "bg-secondary"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <StepCardView
+                  step={card.steps[replayStep]}
+                  index={replayStep}
+                  total={card.steps.length}
+                  variant="student"
+                  pictogramOnly={data.pictogramOnly}
+                  active
+                >
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      className="btn-outline btn-lg flex-1"
+                      disabled={replayStep === 0}
+                      onClick={() => setReplayStep((s) => Math.max(0, (s ?? 1) - 1))}
+                      aria-label="Previous step"
+                    >
+                      ← Back
+                    </button>
+                    {replayStep < card.steps.length - 1 ? (
+                      <button
+                        type="button"
+                        className="btn-primary btn-lg flex-1"
+                        onClick={() => setReplayStep((s) => (s ?? 0) + 1)}
+                        aria-label="Next step"
+                      >
+                        Next →
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn-success btn-lg flex-1"
+                        onClick={() => setReplayStep(null)}
+                        aria-label="Finished reviewing"
+                      >
+                        Done ✓
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-ghost w-full text-muted-foreground"
+                    onClick={() => setReplayStep(null)}
+                  >
+                    ✕ Stop replaying
+                  </button>
+                </StepCardView>
               </div>
             )}
 
